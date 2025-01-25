@@ -1,4 +1,4 @@
-const Provence = require("../models/provence");
+const Provence = require("../models/provence.model");
 
 const createRecord = async (data) => {
   const slide = new Slide(data);

@@ -6,7 +6,7 @@ const _ = require("lodash");
 const bcrypt = require('bcrypt');
 const router = express.Router();
 
-const { User } = require('../models/user');
+const { User } = require('../models/user.model');
 const { INVALID_INPUT } = require('../helpers/app_messages');
 
 //routes will prepend with ==> /api/user

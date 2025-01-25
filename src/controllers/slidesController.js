@@ -2,20 +2,11 @@ const multer = require("multer");
 const path = require("path");
 const crypto = require("crypto");
 const mongoose = require("mongoose");
-const {ok200, badRequet400, internalServerError500, notFound404} =  require('../response-handlers/response-handler')
+const appMessages = require("../constants/appMessages");
+const { successResponse, internalServerError, genericErrorResponse, customSuccessResponse, badRequestResponse } = require("../helpers/responseHelper");
 const slideService = require("../services/slideService");
-const Slide = require("../models/slide");
-
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, './public/uploads/slides/images/')
-//   },
-//   filename: function (req, file, cb) {
-//     let customFileName = crypto.randomBytes(18).toString('hex')
-//     let fileExtension = path.extname(file.originalname).split('.')[1];
-//     cb(null, customFileName + '.' + fileExtension)
-//   }
-// })
+const Slide = require("../models/slide.model");
+const {multerUploadFile} = require("../services/multerFileUploadService");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -67,31 +58,31 @@ exports.uploadImage = async (req, res) => {
       message: "File uploaded successfully",
       file: filePath,
     });
+
   });
 };
 
 exports.createSlide = async (req, res) => {
   try {
-    let data = req.body;
-    data.created_at = new Date();
-    data.updated_at = new Date();
-
-    const exists = await Slide.findOne({ name: data.name });
+    let {data} = req.body;
+   
+    const exists = await Slide.findOne({ code: data.code });
     if (exists) {
-      return res.status(200).send({ status: "error", message: "Slide already exists" });
+      return genericErrorResponse(res, appMessages.DUPLICATE_RECORDS_MSG);
     }
     let result = await new Slide(data).save();
-    return res.status(200).send({ status: "success", message: "Record created", result });
+    return customSuccessResponse(res, result, appMessages.RECORD_SUCCESSFULY_CREATED);
+
   } catch (error) {
-    return res.status(500).send({ status: "error", message: "Internal server error" });
+    return internalServerError(res);
   }
 };
 
 exports.listSlides = async (req, res) => {
   try {
-    let pageNo = req.query.pageNo || 1;
+    let pageNo = req.query?.pageNo ||  1;
     let pageSize = req.query.pageSize || 10;
-    let skipRecords = pageNo * pageSize;
+    let skipRecords = ((pageNo-1) * pageSize) <= 0 ? 0 : (pageNo-1) * pageSize;
 
     let searchBy = req.query.searchBy || "name";
     let searchText = req.query.searchText || "";
@@ -111,39 +102,38 @@ exports.listSlides = async (req, res) => {
       data,
     };
 
-    res.status(200).send(resp);
+    return customSuccessResponse(res, resp, appMessages.SUCCESS);
+
   } catch (error) {
     console.log(error.message);
-    res.status(500).send("Internal Server Error");
+     return internalServerError();
   }
 };
 
 exports.updateSlide = async (req, res) => {
-  const { id } = req.params;
+  const {_id } = req.body.data;
   const {data} = req.body;
 
   try {
 
-    const exists = await Slide.findOne({ _id: { $ne: mongoose.Types.ObjectId(id) }, name: data.name });
-    if (exists) {
-      return  badRequet400(res,null, null)  
+    const exists = await Slide.findOne({ _id: mongoose.Types.ObjectId(_id) });
+    if (!exists) {
+      return genericErrorResponse(res, appMessages.DUPLICATE_RECORDS_MSG);
     }
-
-    const updatedProv = await Slide.findOneAndUpdate({ _id: mongoose.Types.ObjectId(id) }, data, {
+    const updated = await Slide.findOneAndUpdate({ _id: mongoose.Types.ObjectId(_id) }, data, {
       new: true, // Return the updated document
       runValidators: true, // Validate before update
     });
 
-    if (!updatedProv) {
-      return notFound404(res,null, null);
+    if (!updated) {
+      return genericErrorResponse(res, appMessages.RECORD_NOT_FOUND_MSG);
     }
 
-    return ok200(res,null, updatedProv);
-
+    return customSuccessResponse(res, updated, appMessages.RECORD_SUCCESSFULY_UPDATED);
 
   } catch (error) {
     console.log(error.message);
-    return internalServerError500(res, null,null);
+    return internalServerError();
   }
 };
 
@@ -153,13 +143,13 @@ exports.findSlideById = async (req, res) => {
     const slide = await Slide.findOne({ _id: mongoose.Types.ObjectId(id) });
 
     if (!slide) {
-      return notFound404(res, null, null);
+      return genericErrorResponse(res, appMessages.RECORD_NOT_FOUND_MSG);
     }
 
-    return ok200(res,'Success', slide); 
+    return successResponse(res, slide, appMessages.SUCCESS);
 
   } catch (error) {
-    return internalServerError500(res, null,null);
+    return internalServerError(res);
   }
 };
 
@@ -171,11 +161,12 @@ exports.deleteSlideById = async (req, res) => {
     });
 
     if (!deletedSlide) {
-      return notFound404(res,null, null);
+      return genericErrorResponse(res, appMessages.RECORD_NOT_FOUND_MSG);
     }
 
-    res.status(200).json(deletedSlide);
+    return successResponse(res,appMessages.RECORD_SUCCESSFULY_DELETED);
+
   } catch (error) {
-    return internalServerError500(res, null,null);
+    return internalServerError(res);
   }
 }

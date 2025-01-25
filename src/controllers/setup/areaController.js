@@ -1,4 +1,4 @@
-const { Area } = require("../../models/area");
+const { Area } = require("../../models/area.model");
 const {BAD_REQUEST, OK, NOT_FOUND,INTERNAL_SERVER_ERROR} = require("../../constants/httpCodes");
 const {ok200, badRequet400, internalServerError500, notFound404} =  require('../../response-handlers/response-handler')
 const AppMessages =  require("../../constants/appMessages");

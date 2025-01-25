@@ -1,4 +1,4 @@
-const Slide = require("../models/slide");
+const Slide = require("../models/slide.model");
 
 const createSlide = async (slideData) => {
   const slide = new Slide(slideData);
