@@ -1,0 +1,24 @@
+# VCS and metadata
+.git
+.gitignore
+.DS_Store
+**/.DS_Store
+
+# Environment files
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Dependencies and build artifacts
+node_modules
+**/node_modules
+dist
+build
+coverage
+.cache
+*.log
+
+# IDE files
+.idea
+.vscode

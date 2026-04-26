@@ -1,0 +1,30 @@
+# OS/editor
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
+
+# Environment and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+!**/sample.env
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs and caches
+dist/
+build/
+coverage/
+.cache/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Keep local uploaded/generated media out of git
+slides-be/public/uploads/slides/images/
+slides-be/uploads/
