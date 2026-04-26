@@ -9,6 +9,9 @@ on:
       - dev
       - main
       - master
+    paths:
+      - "slides-fe/**"
+      - ".github/workflows/docker-publish-frontend.yml"
   workflow_dispatch:
 
 jobs:
@@ -33,7 +36,7 @@ jobs:
       - name: Build and push latest image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./slides-fe
+          file: ./slides-fe/Dockerfile
           push: true
           tags: ${{ env.IMAGE_NAME }}:latest
