@@ -1,0 +1,77 @@
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    align-items: flex-end;
+    }
+    .searchInput{
+    width: 300px;
+    }
+    .table-header-wrapper .header-row{
+    padding: 8px 16px;
+    background-color: #e9e9ea;
+    }
+    .status-wrapper-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex-direction: column;
+    }
+    .statusDiv{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .status-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .status-title{
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 16px;
+        color: #757575;
+    }
+    .status-value{
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 16px;
+        text-transform: capitalize;
+        background: rgba(0, 0, 0, 0.04);
+        padding: 2px 16px;
+        border-radius: 30px;
+        border: 1px solid #1876d2;
+    }
+    .statusBox{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .searchWrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .table-body-style tr td{
+        padding: 6px 16px;
+    }
+    .page-wrapper{
+        padding: 16px;
+    }
+    .MuiSwitch-root{
+        margin: 0 !important;
+    }
+    .MuiTablePagination-root .MuiToolbar-root .MuiTablePagination-selectLabel, .MuiTablePagination-root .MuiToolbar-root .MuiTablePagination-displayedRows{
+        margin-bottom: 0;
+    }
+    .MuiButtonBase-root.custom-icon-button{
+        border: 1px solid #757575;
+    }
+    .MuiButtonBase-root.custom-icon-button:first-child{
+        margin-right: 8px;
+    }
+
+    .MuiButtonBase-root.custom-icon-button svg{
+        font-size: 16px;
+    }

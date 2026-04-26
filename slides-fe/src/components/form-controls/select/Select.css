@@ -1,0 +1,27 @@
+.MuiAutocomplete-root.custom-select .MuiOutlinedInput-root {
+  min-height: 56px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  align-items: center;
+}
+
+.MuiAutocomplete-root.custom-select .MuiOutlinedInput-input {
+  font-size: 16px;
+  line-height: 1.4;
+  padding: 16px 4px 16px 6px !important;
+}
+
+.MuiAutocomplete-root.custom-select .MuiAutocomplete-inputRoot {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.MuiAutocomplete-root.custom-select .MuiFormLabel-root {
+  font-size: 14px;
+}
+
+.MuiAutocomplete-root.custom-select .MuiAutocomplete-endAdornment {
+  top: 50%;
+  transform: translateY(-50%);
+  right: 12px;
+}

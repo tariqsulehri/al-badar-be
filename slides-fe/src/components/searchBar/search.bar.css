@@ -1,0 +1,41 @@
+.search-bar-panel {
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.search-bar-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(220px, 1fr) auto auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.search-select-form,
+.search-input {
+  width: 100%;
+}
+
+.advanced-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.search-btn.MuiButton-root {
+  min-height: 40px;
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .search-bar-row {
+    grid-template-columns: 1fr;
+  }
+
+  .advanced-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}

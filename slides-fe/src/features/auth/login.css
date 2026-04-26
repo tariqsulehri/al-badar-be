@@ -1,0 +1,42 @@
+.auth-form {
+  display: grid;
+  gap: 18px;
+}
+
+.auth-form__field {
+  display: grid;
+}
+
+.auth-form__submit {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 6px;
+}
+
+.auth-form__assist {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.auth-form__link {
+  border: 0;
+  background: transparent;
+  color: var(--brand-strong);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.smallfont {
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .auth-form__assist {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

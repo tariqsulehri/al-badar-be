@@ -1,0 +1,43 @@
+services:
+ mongodb:
+   image: mongo:latest
+   container_name: mongodb
+   restart: unless-stopped
+   ports:
+    - "27017:27017"
+   volumes:
+    - mongodb_data:/data/db
+
+
+ backend:
+   image: tariqsulehri/slides-be:latest
+   container_name: al-badar-be
+   restart: unless-stopped
+   depends_on:
+    - mongodb
+   ports:
+    - "3500:3500"
+   volumes:
+    - slide_images_data:/app/public/uploads/slides/images
+   environment:
+     PORT: 3500
+     DB: mongodb://mongodb:27017/al-badar
+     BASE_IMAGES_PATH: http://localhost:3500/uploads/slides/images
+     BASE_URL: http://localhost:3500
+     NODE_SECRET_KEY: jwt_secret_key
+
+
+ frontend:
+   image: tariqsulehri/slides-fe:latest
+   container_name: al-badar-fe
+   restart: unless-stopped
+   depends_on:
+    - backend
+   ports:
+    - "3000:80"
+
+
+volumes:
+ mongodb_data:
+   external: true
+ slide_images_data:

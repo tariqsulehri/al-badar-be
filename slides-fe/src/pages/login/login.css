@@ -1,0 +1,110 @@
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.24), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.16), transparent 24%),
+    linear-gradient(180deg, #f6fafc 0%, #edf3f8 100%);
+}
+
+.login-page__panel {
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 440px);
+  gap: 28px;
+  align-items: stretch;
+}
+
+.login-page__content {
+  padding: 40px 20px 40px 6px;
+}
+
+.login-page__content h1 {
+  margin: 18px 0 16px;
+  max-width: 12ch;
+  font-size: clamp(2.8rem, 5vw, 5rem);
+  line-height: 0.94;
+  letter-spacing: -0.07em;
+}
+
+.login-page__content p {
+  max-width: 60ch;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+.login-page__highlights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.login-page__highlight {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: var(--shadow-soft);
+}
+
+.login-page__highlight strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.login-page__highlight span {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.login-page__card {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-page__card-header {
+  margin-bottom: 12px;
+}
+
+.login-page__card-header h2 {
+  margin: 0 0 8px;
+  font-size: 30px;
+  letter-spacing: -0.05em;
+}
+
+.login-page__card-header p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1024px) {
+  .login-page__panel {
+    grid-template-columns: 1fr;
+  }
+
+  .login-page__content {
+    padding: 10px 0;
+  }
+
+  .login-page__highlights {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    padding: 16px;
+  }
+
+  .login-page__card {
+    padding: 22px;
+  }
+}

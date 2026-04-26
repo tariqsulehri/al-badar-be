@@ -1,0 +1,161 @@
+.topbar {
+  margin: 12px auto 0;
+  width: min(calc(100% - 28px), var(--app-shell-width));
+  border: 1px solid var(--nav-border);
+  border-radius: 20px;
+  background: var(--nav-bg) !important;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(22px) saturate(1.5);
+  color: #fff;
+  transition: background 320ms ease, border-color 320ms ease;
+}
+
+.topbar__toolbar {
+  min-height: 68px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.4fr) auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 10px 18px !important;
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+}
+
+.topbar__brand-mark {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--brand-accent, #f59e0b) 0%, #fcd34d 100%);
+  color: #172033;
+  font-weight: 800;
+  font-size: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.topbar__eyebrow {
+  margin: 0 0 4px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.topbar__title {
+  margin: 0;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 17px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.topbar__nav {
+  justify-self: center;
+  flex-wrap: wrap;
+}
+
+.topbar__link.MuiButton-root {
+  color: rgba(255, 255, 255, 0.92);
+  border-radius: 14px;
+  padding: 10px 16px;
+  text-transform: none;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.topbar__link.MuiButton-root:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.topbar__status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.topbar__status-copy {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.topbar__status-label {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.topbar__chip.MuiChip-root {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.menu-top-set .MuiPopover-paper.MuiMenu-paper {
+  margin-top: 12px;
+  min-width: 220px;
+  border-radius: 20px;
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+  overflow: hidden;
+}
+
+.menu-top-set .MuiMenu-list {
+  padding: 8px !important;
+}
+
+.menu-top-set .MuiMenuItem-root {
+  border-radius: 14px;
+  margin: 2px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.menu-top-set .MuiMenuItem-root:hover {
+  background: rgba(15, 118, 110, 0.08);
+  color: var(--brand-strong);
+}
+
+@media (max-width: 1100px) {
+  .topbar__toolbar {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .topbar__nav {
+    justify-self: start;
+  }
+
+  .topbar__status {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    width: min(calc(100% - 20px), var(--app-shell-width));
+    border-radius: 24px;
+  }
+
+  .topbar__toolbar {
+    padding: 16px !important;
+  }
+
+  .topbar__status {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .topbar__status-copy {
+    text-align: left;
+  }
+}
