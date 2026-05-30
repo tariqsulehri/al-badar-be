@@ -74,7 +74,7 @@ exports.listSubAreaForSelect = async (req, res) => {
 
   } catch (error) {
     console.log(error);
-    res.status(401).send("Error");
+    res.status(500).json({ status: "0", message: "Internal Server Error" });
   }
 };
 
@@ -83,7 +83,7 @@ exports.listSubAreas = async (req, res) => {
   try {
     let pageNo = req.query.pageNo || 1;
     let pageSize = req.query.pageSize || 0;
-    let skipRecords = pageNo * pageSize;
+    let skipRecords = (pageNo - 1) * pageSize;
 
     let searchBy = req.query.searchBy || "name";
     let searchText = req.query.searchText || "";
@@ -106,7 +106,7 @@ exports.listSubAreas = async (req, res) => {
     res.status(200).send(resp);
   } catch (error) {
     console.log(error);
-    res.status(401).send("Error");
+    res.status(500).json({ status: "0", message: "Internal Server Error" });
   }
 };
 

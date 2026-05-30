@@ -21,10 +21,10 @@ services:
     - slide_images_data:/app/public/uploads/slides/images
    environment:
      PORT: 3500
-     DB: mongodb://mongodb:27017/al-badar
-     BASE_IMAGES_PATH: http://localhost:3500/uploads/slides/images
-     BASE_URL: http://localhost:3500
-     NODE_SECRET_KEY: jwt_secret_key
+     DB: ${DB}
+     BASE_IMAGES_PATH: ${BASE_IMAGES_PATH:-http://localhost:3500/uploads/slides/images}
+     BASE_URL: ${BASE_URL:-http://localhost:3500}
+     NODE_SECRET_KEY: ${NODE_SECRET_KEY}
 
 
  frontend:

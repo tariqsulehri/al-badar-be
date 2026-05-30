@@ -106,7 +106,7 @@ const SlidesDataTable = ({
 
   return (
     <div className="slides-table-shell page-card">
-      <MUIDataTable title={null} data={data} columns={columns} options={options} />
+      <MUIDataTable title="" data={data} columns={columns} options={options} />
       <Box className="slides-pagination-bar">
         <TablePagination
           component="div"

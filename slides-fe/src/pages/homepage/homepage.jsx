@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchFromStore } from "../../utils/fetchFromStore";
+import { useFetchFromStore } from "../../utils/fetchFromStore";
 import "./homePage.css";
 
 const highlights = [
@@ -20,7 +20,8 @@ const highlights = [
 
 const Home = () => {
   const navigate = useNavigate();
-  const { currentUser } = fetchFromStore("auth");
+  const auth = useFetchFromStore("auth");
+  const currentUser = auth?.currentUser;
 
   return (
     <section className="home-hero page-section">
