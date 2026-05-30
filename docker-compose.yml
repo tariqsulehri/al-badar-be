@@ -39,5 +39,4 @@ services:
 
 volumes:
  mongodb_data:
-   external: true
  slide_images_data:

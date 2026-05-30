@@ -4,7 +4,7 @@ import { showToastNotification } from "../../../helpers/notificationsHepler";
 export const getAllAreasForSelection = async () => {
   try {
     const { data } = await httpClient.get("/area/list_for_select");
-    return data || [];
+    return Array.isArray(data) ? data : (Array.isArray(data?.result) ? data.result : []);
   } catch (error) {
     showToastNotification("error", "Something Went wrong..");
     return [];

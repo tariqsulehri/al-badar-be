@@ -3,6 +3,7 @@ const { User } = require('../models/user.model');
 const express = require('express');
 const _ = require("lodash");
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { INVALID_INPUT } = require('../helpers/app_messages');
 

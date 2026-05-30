@@ -30,7 +30,7 @@ const emptyFilters = {
 };
 
 const normalizeOptions = (options = []) =>
-  options
+  (Array.isArray(options) ? options : [])
     .map((option) => {
       if (typeof option === "string") {
         return { label: option, value: option };

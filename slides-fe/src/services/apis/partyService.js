@@ -15,7 +15,7 @@ export const getAllParties = async (rowsPerPage, pageNo, searchBy, searchText) =
 export const getAllSuppliersForSelection = async () => {
     try{
         let {data} = await httpClient.get(`/party/suppliers/list_for_select`);
-        return data ? data : [];
+        return Array.isArray(data) ? data : (Array.isArray(data?.result) ? data.result : []);
     } catch(error) {
         showToastNotification("error", "Something Went wrong..");
         console.log("Something Went wrong", error.message);

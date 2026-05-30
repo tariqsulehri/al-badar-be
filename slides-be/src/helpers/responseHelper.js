@@ -12,9 +12,9 @@ exports.successResponse = (res, data ) => {
 }
 
 exports.badRequestResponse = (res) => {
-    return res.status(HttpCodes.BAD_REQUEST.send(
-        new ErrorResponse(AppMessages.BAD_REQUEST)
-    ));
+    return res.status(HttpCodes.BAD_REQUEST).send(
+        new ErrorResponse(AppMessages.BAD_REQUEST_MSG)
+    );
 }
 
 exports.customSuccessResponse = (res, data , message) => {

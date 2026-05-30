@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   env: { browser: true, es2020: true },
   extends: [
     "eslint:recommended",
@@ -11,7 +11,10 @@ export default {
   plugins: ["react-refresh"],
   rules: {
     "react-refresh/only-export-components": "warn",
-    // "react/prop-types": "error",
-    "react/prop-types": "off" 
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off",
+    "no-unused-vars": ["warn", { "varsIgnorePattern": "^React$", "argsIgnorePattern": "^_" }],
+    "no-empty": "warn",
+    "react-hooks/exhaustive-deps": "warn"
   },
 };

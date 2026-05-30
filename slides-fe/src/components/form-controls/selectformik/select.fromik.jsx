@@ -38,7 +38,7 @@ export const SelectFormik = (props) => {
 
   return (
     <div className={warpperClassName}>
-      <label className={labelClassName} html-for={name}>
+      <label className={labelClassName} htmlFor={name}>
         {label}
       </label>
       <select

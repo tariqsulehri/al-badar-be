@@ -64,17 +64,18 @@ const SelectedDataTableComponent = ({data, columns}) => {
     customToolbarSelect: () => {
       return null; // Disable the default toolbar
     },
-    onRowClick: (rowData, rowMeta) => {
-      handleRemoveSlide(rowMeta.dataIndex);
+    onRowClick: (_rowData, rowMeta) => {
+      const slide = data[rowMeta.dataIndex];
+      if (slide) dispatch(removeSlide(slide));
     },
-    onRowSelectionChange: (currentRowsSelected, allRowsSelected, rowsSelected) => {
+    onRowSelectionChange: (_currentRowsSelected, allRowsSelected) => {
       // Get the indexes of selected rows
       const selectedIndexes = allRowsSelected.map((row) => row.dataIndex);
       const selectedData = selectedIndexes.map((index) => data[index]).filter(Boolean);
 
       // Find which slides are newly selected and which are deselected
       const selectedIds = new Set(selectedData.map(slide => slide._id));
-      const prevSelectedIds = new Set(Object.keys(selectedSlideIds).filter(id => selectedSlideIds[id]));
+      const prevSelectedIds = new Set(data.map(s => s._id).filter(id => !selectedIds.has(id)));
 
       // Slides to remove: previously selected but not in current selection
       const toRemove = [...prevSelectedIds].filter(id => !selectedIds.has(id));

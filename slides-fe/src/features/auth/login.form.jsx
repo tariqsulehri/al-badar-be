@@ -9,8 +9,8 @@ import "./login.css";
 const LoginForm = (props) => {
   const { loading = false } = props;
   const initialValues = {
-    username: "",
-    password: "",
+    username: "admin",
+    password: "admin",
   };
 
   const onForgotPassword = (values, setFieldTouched) => {

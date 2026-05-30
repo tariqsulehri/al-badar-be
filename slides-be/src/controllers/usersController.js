@@ -33,7 +33,7 @@ exports.createUser = async (req, res) => {
     return successResponse(res, newUser);
   } catch (error) {
     // Handle any errors and return an internal server error response
-    return internalServerError();
+    return internalServerError(res);
   }
 };
 
@@ -79,7 +79,7 @@ exports.usersList = async (req, res) => {
     let users = await userService.getUsers();
     return successResponse(res, users);
   } catch (error) {
-    return internalServerError();
+    return internalServerError(res);
   }
 };
 
@@ -101,7 +101,7 @@ exports.getUser = async (req, res) => {
 
   } catch (error) {
     console.log("in error",error);
-    return internalServerError();
+    return internalServerError(res);
   }
 };
 
@@ -120,7 +120,7 @@ exports.deleteUser = async (req, res) => {
     await userService.deleteUser(id);
     return successResponse(res);
   } catch (error) {
-    return internalServerError();
+    return internalServerError(res);
   }
 };
 
@@ -152,7 +152,7 @@ exports.changeUserPassword = async (req, res) => {
 
     return successResponse(res, result);
   } catch (error) {
-    return internalServerError();
+    return internalServerError(res);
   }
 };
 
@@ -174,9 +174,9 @@ exports.updateUser = async (req, res) => {
       return genericErrorResponse(res, AppMessages.APP_RESOURCE_NOT_FOUND);
     }
 
-    return successResponse(AppMessages.RECORD_SUCCESSFULY_UPDATED);
+    return customSuccessResponse(res, null, AppMessages.RECORD_SUCCESSFULY_UPDATED);
   } catch (error) {
-    return internalServerError();
+    return internalServerError(res);
   }
 };
 
@@ -197,13 +197,13 @@ exports.resendOTP = async (req, res) => {
     let result = await userService.updateOTP(body);
 
     if (!result[0][0].affected_rows || result[0][0].affected_rows === 0) {
-      return genericErrorResponse(res,appMessages.ERROR_PIN_GENERATION )
+      return genericErrorResponse(res,AppMessages.ERROR_PIN_GENERATION )
     }
 
-    return customSuccessResponse(res,appMessages.PIN_SUCCESSFULY_GENERATED );
+    return customSuccessResponse(res,AppMessages.PIN_SUCCESSFULY_GENERATED );
 
   } catch (error) {
-    return internalServerError();
+    return internalServerError(res);
   }
 };
 
@@ -224,12 +224,12 @@ exports.confirmOTP = async (req, res) => {
     let result = await userService.confirmOTP(body);
 
     if (!result[0][0].affected_rows || result[0][0].affected_rows === 0) {
-      return genericErrorResponse(res,appMessages.ERROR_INVALID_PIN)
+      return genericErrorResponse(res,AppMessages.ERROR_INVALID_PIN)
     }
 
-    return customSuccessResponse(res,appMessages.PIN_SUCCESSFULY_CONFIRMED );
+    return customSuccessResponse(res,AppMessages.PIN_SUCCESSFULY_CONFIRMED );
 
   } catch (error) {
-    return internalServerError();
+    return internalServerError(res);
   }
 };

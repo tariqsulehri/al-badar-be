@@ -126,7 +126,7 @@ exports.updateSlide = async (req, res) => {
     return customSuccessResponse(res, updated, appMessages.RECORD_SUCCESSFULY_UPDATED);
   } catch (error) {
     console.log(error.message);
-    return internalServerError();
+    return internalServerError(res);
   }
 };
 

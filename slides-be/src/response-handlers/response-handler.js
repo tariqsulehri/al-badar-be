@@ -24,7 +24,7 @@ exports.ok200 = (res, message, data) => {
    */
   
   exports.created201 = (res, message) => {
-    return res.status(CREATED).send(new BadRequestError(message));
+    return res.status(CREATED).send({ status: "OK", message, result: null });
   };
   
   /**
@@ -50,9 +50,9 @@ exports.ok200 = (res, message, data) => {
    *
    */
   exports.unAuthorized401 = (res, message) => {
-    return res.status(UNAUTHORIZED).send(new BadRequestError(message));
+    return res.status(UNAUTHORIZED).send({ status: "Error", message, result: null });
   };
-  
+
   /**
    * NOTFOUND 403
    * ---------------
@@ -60,7 +60,7 @@ exports.ok200 = (res, message, data) => {
    * @returns
    */
   exports.forbidden403 = (res, message) => {
-    return res.status(FORBIDDEN).send(new BadRequestError(message));
+    return res.status(FORBIDDEN).send({ status: "Error", message, result: null });
   };
   
   /**
@@ -83,8 +83,8 @@ exports.ok200 = (res, message, data) => {
    */
   exports.unProcessedEntry422 = (res, message) => {
     return res
-      .status(HttpCodes.UN_PROCESSABLR_ENTITY)
-      .send(new BadRequestError(message));
+      .status(UN_PROCESSABLR_ENTITY)
+      .send({ status: "Error", message, result: null });
   };
   
   /**
