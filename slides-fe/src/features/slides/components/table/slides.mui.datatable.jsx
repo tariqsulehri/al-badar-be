@@ -37,6 +37,7 @@ const SlidesDataTable = ({
   const dispatch  = useDispatch();
   const navigate  = useNavigate();
   const selectedSlideIds = useSelector((state) => state.slidesForPptx.selectedSlideIds);
+  const selectedCount    = useSelector((state) => state.slidesForPptx.slidesForPptx.length);
   const totalPages = Math.max(Math.ceil((totalRows || 0) / (rowsPerPage || 10)), 1);
   const [pageInput, setPageInput] = useState(String((page || 0) + 1));
 
@@ -106,7 +107,7 @@ const SlidesDataTable = ({
 
   return (
     <div className="slides-table-shell page-card">
-      <MUIDataTable title="" data={data} columns={columns} options={options} />
+      <MUIDataTable key={selectedCount === 0 ? "cleared" : "active"} title="" data={data} columns={columns} options={options} />
       <Box className="slides-pagination-bar">
         <TablePagination
           component="div"
