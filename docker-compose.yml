@@ -18,7 +18,7 @@ services:
    ports:
     - "3500:3500"
    volumes:
-    - slide_images_data:/app/public/uploads/slides/images
+    - ./slides-be/public/uploads/slides:/app/public/uploads/slides/images:rw
    environment:
      PORT: 3500
      DB: ${DB}
@@ -36,7 +36,5 @@ services:
    ports:
     - "3000:80"
 
-
 volumes:
  mongodb_data:
- slide_images_data:
