@@ -1,10 +1,13 @@
 services:
  mongodb:
+   # TODO: pin to the exact major version your data volume was created with (e.g. mongo:8.0)
+   # and enable auth (MONGO_INITDB_ROOT_USERNAME/PASSWORD only apply to a fresh volume).
    image: mongo:latest
    container_name: mongodb
    restart: unless-stopped
+   # Only reachable from this host (and from the other containers). Never publish MongoDB publicly.
    ports:
-    - "27017:27017"
+    - "127.0.0.1:27017:27017"
    volumes:
     - mongodb_data:/data/db
 
@@ -22,9 +25,10 @@ services:
    environment:
      PORT: 3500
      DB: ${DB}
-     BASE_IMAGES_PATH: ${BASE_IMAGES_PATH:-http://localhost:3500/uploads/slides/images}
      BASE_URL: ${BASE_URL:-http://localhost:3500}
-     NODE_SECRET_KEY: ${NODE_SECRET_KEY}
+     NODE_SECRET_KEY: ${NODE_SECRET_KEY:?Set NODE_SECRET_KEY in .env}
+     CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+     NODE_ENV: production
 
 
  frontend:

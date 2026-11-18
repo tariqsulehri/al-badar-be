@@ -13,10 +13,36 @@ on:
       - "slides-fe/**"
       - ".github/workflows/docker-publish-frontend.yml"
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "slides-fe/**"
 
 jobs:
+  lint-build:
+    name: Lint and build frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: slides-fe
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: slides-fe/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
   docker:
     name: Publish frontend image
+    needs: lint-build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: production
 
@@ -40,4 +66,8 @@ jobs:
           file: ./slides-fe/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.IMAGE_NAME }}:latest
+          build-args: |
+            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }}
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
