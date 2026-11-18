@@ -1,80 +1,24 @@
-const { successResponse, internalServerError, genericErrorResponse, customSuccessResponse, badRequestResponse } = require("../helpers/responseHelper");
 const invoiceService = require("../services/invoiceService");
-const AppMessages =  require('../constants/appMessages');
-const quoteService = require('../services/quoteService');
+const { ok, created } = require("../utils/apiResponse");
+const { parsePagination, readPayload } = require("../utils/query");
 
-exports.createInvoice = async (req, res) => {
-  try {
-
-    let data = req.body;
-    const quote =  await quoteService.findQuoteById(data.quote_id);
-    if(!quote){
-      return genericErrorResponse(res, AppMessages.RECORD_NOT_FOUND_MSG);
-    }
-    const result = await invoiceService.createInvoice(quote);
-    if (!result) {
-      return genericErrorResponse(res, AppMessages.DUPLICATE_RECORDS_MSG);
-    }
-    return customSuccessResponse(res, result, AppMessages.RECORD_SUCCESSFULY_CREATED);
-
-  } catch (error) {
-    console.log(error.message);
-    return internalServerError(res);
-  }
+exports.create = async (req, res) => {
+  const { quote_id: quoteId } = readPayload(req.body);
+  return created(res, await invoiceService.createInvoiceFromQuote(quoteId));
 };
 
-exports.listInvoices = async (req, res) => {
-  try {
-    let pageNo = req.query.pageNo;
-    let pageSize = req.query.pageSize;
-
-    let searchBy = req.query.searchBy || "name";
-    let searchText = req.query.searchText || "";
-
-    let result = await invoiceService.listInvoices(pageNo, pageSize, searchBy, searchText);
-    return customSuccessResponse(res, result, appMessages.RECORD_SUCCESSFULY_CREATED);
-  } catch (error) {
-    console.log(error.message);
-    return internalServerError(res);
-  }
+exports.list = async (req, res) => {
+  const pagination = parsePagination(req.query);
+  const searchText = (req.query.searchText || "").trim();
+  return ok(res, await invoiceService.listInvoices({ ...pagination, searchText }));
 };
 
-exports.updateInvoice = async (req, res) => {
-  const { id } = req.params;
+exports.update = async (req, res) =>
+  ok(res, await invoiceService.updateInvoice(req.params.id, readPayload(req.body)), "Record updated");
 
-  try {
-    const result = await invoiceService.updateInvoice(id, req.body);
-    if (!result) {
-      return genericErrorResponse(res, AppMessages.RECORD_NOT_FOUND_MSG);
-    }
-    return customSuccessResponse(res, result, appMessages.RECORD_SUCCESSFULY_UPDATED);
-  } catch (error) {
-    console.log(error.message);
-    return internalServerError(res);
-  }
-};
+exports.findById = async (req, res) => ok(res, await invoiceService.findInvoice(req.params.id));
 
-exports.findInvoiceById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await invoiceService.findInvoice(id);
-
-    if (!result) {
-      return genericErrorResponse(res, AppMessages.RECORD_NOT_FOUND_MSG);
-    }
-
-    return customSuccessResponse(res, result, appMessages.SUCCESS);
-  } catch (error) {
-    return internalServerError(res);
-  }
-};
-
-exports.deleteInvoiceById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    let result = await invoiceService.deleteInvoiceById(id);
-    return customSuccessResponse(res, result, appMessages.SUCCESS);
-  } catch (error) {
-    return internalServerError(res);
-  }
+exports.remove = async (req, res) => {
+  await invoiceService.deactivateInvoice(req.params.id);
+  return ok(res, null, "Record deleted");
 };

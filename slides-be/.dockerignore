@@ -4,7 +4,13 @@ Dockerfile
 .dockerignore
 .git
 .gitignore
+.env
+.env.*
+!.env.example
 coverage
+tests
+public/uploads
 uploads
 dist
 build
+.DS_Store

@@ -23,7 +23,7 @@ const areaSchema = new mongoose.Schema({
 
 });
 
-const Area = new mongoose.model("Area", areaSchema);
+const Area = mongoose.model("Area", areaSchema);
 exports.Area = Area;
 
 

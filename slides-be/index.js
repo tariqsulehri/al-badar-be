@@ -1,33 +1,33 @@
-const express = require('express');
-const cors =  require('cors');
-const app = express();
-const dotenv = require('dotenv');
-const path =  require('path');
+const mongoose = require("mongoose");
+const { port, dbUri } = require("./src/config/env");
+const app = require("./src/app");
+const connectDb = require("./src/startup/db");
+const logger = require("./src/utils/logger");
 
-app.use(cors());
-dotenv.config();
+const start = async () => {
+  try {
+    await connectDb(dbUri);
+  } catch (err) {
+    logger.error({ err }, "Could not connect to MongoDB; exiting");
+    process.exit(1);
+  }
 
-require('./src/startup/routes')(app);
-require('./src/startup/db')();
+  const server = app.listen(port, () => logger.info(`Server is listening on port ${port}`));
 
-app.use(express.static('public'));
+  const shutdown = (signal) => {
+    logger.info(`${signal} received, shutting down`);
+    server.close(async () => {
+      await mongoose.connection.close();
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(1), 10000).unref();
+  };
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+};
 
-app.get('/', (req,res) => {
-   res.status(200).send("ok");
-})
-
-app.get('/health', (req,res) => {
-    res.status(200).send("health");
- })
-
-const port = process.env.PORT || 3500;
-
-app.listen(port, function () {
-    console.log(`Server is listening on port ${port}`);
+process.on("unhandledRejection", (err) => {
+  logger.error({ err }, "Unhandled promise rejection");
 });
 
-
-
-
-
-
+start();

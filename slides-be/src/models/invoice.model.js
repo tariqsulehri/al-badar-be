@@ -4,7 +4,8 @@ const invoiceSchema = new mongoose.Schema(
   {
     invoice_number: {
       type: Number,
-      default: 1,
+      required: true,
+      unique: true,
     },
     invoice_date: {
       type: Date,

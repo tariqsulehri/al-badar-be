@@ -5,8 +5,8 @@ const slideSchema = new mongoose.Schema(
     code: {
       type: String,
       required: [true, "Code is required"],
-      // trim: true,
-      // minlength: [3, "Code must be at least 3 characters long"],
+      unique: true,
+      trim: true,
     },
     supplier: {
       type: String,

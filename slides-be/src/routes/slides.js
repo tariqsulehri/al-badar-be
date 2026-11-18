@@ -1,14 +1,9 @@
-const express = require("express");
-const auth = require("../middleware/auth");
-const slidesController =  require("../controllers/slidesController");
+const asyncHandler = require("../middleware/asyncHandler");
+const { uploadSingleImage } = require("../middleware/imageUpload");
+const slidesController = require("../controllers/slidesController");
+const crudRouter = require("./crudRouter");
 
-const router = express.Router();
-
-router.post("/create", auth, slidesController.createSlide);
-router.post("/upload", auth, slidesController.uploadImage);
-router.post("/update/:id", auth, slidesController.updateSlide);
-router.get("/find/:id", auth, slidesController.findSlideById);
-router.get("/delete/:id", auth, slidesController.deleteSlideById);
-router.get("/list", auth, slidesController.listSlides);
+const router = crudRouter(slidesController);
+router.post("/upload", uploadSingleImage, asyncHandler(slidesController.uploadImage));
 
 module.exports = router;

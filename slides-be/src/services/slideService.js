@@ -1,5 +1,7 @@
-const mongoose = require("mongoose");
 const Slide = require("../models/slide.model");
+const HttpError = require("../utils/httpError");
+const { containsRegex, exactRegex, paginatedResult } = require("../utils/query");
+const { syncLookupsFromSlides } = require("./lookupSyncService");
 
 const SEARCHABLE_TEXT_FIELDS = [
   "code",
@@ -26,116 +28,56 @@ const SEARCHABLE_NUMBER_FIELDS = [
   "finalPrice",
 ];
 
-const ADVANCED_FILTER_FIELDS = [
-  "city",
-  "area",
-  "subArea",
-  "supplier",
-  "category",
-];
+const ADVANCED_FILTER_FIELDS = ["city", "area", "subArea", "supplier", "category"];
 
-const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-const createSlide = async (slideData) => {
-  const slide = new Slide(slideData);
-  await slide.save();
-  return slide;
-};
-
-const updateSlide = async (slideId, updateData) => {
-  return Slide.findOneAndUpdate(
-    { _id: mongoose.Types.ObjectId(slideId) },
-    updateData,
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
-};
-
-const deleteSlide = async (id) => {
-  await Slide.findByIdAndDelete(mongoose.Types.ObjectId(id));
-  return { message: "Item deleted successfully" };
-};
-
-const findSlide = async (id) => {
-  return Slide.findOne({ _id: mongoose.Types.ObjectId(id) });
-};
+// The selected-slides / PPTX export screen pulls large pages; everything else should stay small.
+const MAX_PAGE_SIZE = 5000;
 
 const buildSearchQuery = (searchBy = "code", searchText = "") => {
-  const trimmedSearchText = searchText?.trim();
-  if (!trimmedSearchText) {
-    return {};
-  }
-  const escapedSearchText = escapeRegExp(trimmedSearchText);
+  const text = typeof searchText === "string" ? searchText.trim() : "";
+  if (!text) return {};
 
   if (searchBy === "all") {
-    const textQueries = SEARCHABLE_TEXT_FIELDS.map((field) => ({
-      [field]: { $regex: escapedSearchText, $options: "i" },
-    }));
-    const numberValue = Number(trimmedSearchText);
+    const numberValue = Number(text);
     const numberQueries = Number.isNaN(numberValue)
       ? []
       : SEARCHABLE_NUMBER_FIELDS.map((field) => ({ [field]: numberValue }));
-
-    return { $or: [...textQueries, ...numberQueries] };
+    return { $or: [...SEARCHABLE_TEXT_FIELDS.map((field) => ({ [field]: containsRegex(text) })), ...numberQueries] };
   }
 
   if (SEARCHABLE_TEXT_FIELDS.includes(searchBy)) {
-    return {
-      [searchBy]: { $regex: escapedSearchText, $options: "i" },
-    };
+    return { [searchBy]: containsRegex(text) };
   }
 
   if (SEARCHABLE_NUMBER_FIELDS.includes(searchBy)) {
-    const numberValue = Number(trimmedSearchText);
-    if (Number.isNaN(numberValue)) {
-      return { _id: null };
-    }
-
-    return { [searchBy]: numberValue };
+    const numberValue = Number(text);
+    return Number.isNaN(numberValue) ? { _id: null } : { [searchBy]: numberValue };
   }
 
-  return {
-    code: { $regex: escapedSearchText, $options: "i" },
-  };
+  return { code: containsRegex(text) };
 };
 
-const normalizeFilters = (filters = {}) => {
-  if (!filters || typeof filters !== "object") {
-    return {};
-  }
-
+const buildFilterQuery = (filters) => {
+  if (!filters || typeof filters !== "object") return {};
   return ADVANCED_FILTER_FIELDS.reduce((query, field) => {
     const value = typeof filters[field] === "string" ? filters[field].trim() : "";
-    if (!value) {
-      return query;
-    }
-
-    query[field] = { $regex: `^${escapeRegExp(value)}$`, $options: "i" };
+    if (value) query[field] = exactRegex(value);
     return query;
   }, {});
 };
 
 const buildSlidesQuery = ({ searchBy, searchText, filters }) => {
-  const searchQuery = buildSearchQuery(searchBy, searchText);
-  const filterQuery = normalizeFilters(filters);
-  const queries = [searchQuery, filterQuery].filter((query) => Object.keys(query).length);
-
-  if (!queries.length) {
-    return {};
-  }
-
-  if (queries.length === 1) {
-    return queries[0];
-  }
-
+  const queries = [buildSearchQuery(searchBy, searchText), buildFilterQuery(filters)].filter(
+    (query) => Object.keys(query).length
+  );
+  if (queries.length === 0) return {};
+  if (queries.length === 1) return queries[0];
   return { $and: queries };
 };
 
 const getSlides = async ({ pageNo = 1, pageSize = 10, searchBy = "code", searchText = "", filters = {} } = {}) => {
   const normalizedPageNo = Math.max(Number(pageNo) || 1, 1);
-  const normalizedPageSize = Math.min(Math.max(Number(pageSize) || 10, 1), 5000);
+  const normalizedPageSize = Math.min(Math.max(Number(pageSize) || 10, 1), MAX_PAGE_SIZE);
   const query = buildSlidesQuery({ searchBy, searchText, filters });
 
   const [data, totalRecords] = await Promise.all([
@@ -146,39 +88,39 @@ const getSlides = async ({ pageNo = 1, pageSize = 10, searchBy = "code", searchT
     Slide.countDocuments(query),
   ]);
 
-  return {
-    data,
-    totalRecords,
-    pageNo: normalizedPageNo,
-    pageSize: normalizedPageSize,
-    totalPages: Math.ceil(totalRecords / normalizedPageSize),
-  };
+  return paginatedResult({ data, totalRecords, pageNo: normalizedPageNo, pageSize: normalizedPageSize });
 };
 
-const listSlides = async () => {
-  return Slide.find().sort({ createdAt: -1 });
+const ensureUniqueCode = async (code, excludeId) => {
+  if (!code) return;
+  const filter = excludeId ? { code, _id: { $ne: excludeId } } : { code };
+  if (await Slide.exists(filter)) throw HttpError.conflict("A slide with this code already exists");
 };
 
-const listSuppliersForSelect = async () => {
-  const suppliers = await Slide.distinct("supplier", {
-    supplier: { $nin: [null, ""] },
-  });
-
-  return suppliers
-    .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b))
-    .map((supplier) => ({
-      label: supplier,
-      value: supplier,
-    }));
+const createSlide = async (data) => {
+  await ensureUniqueCode(data.code?.trim());
+  const slide = await Slide.create(data);
+  await syncLookupsFromSlides(slide);
+  return slide;
 };
 
-module.exports = {
-  createSlide,
-  updateSlide,
-  deleteSlide,
-  findSlide,
-  getSlides,
-  listSlides,
-  listSuppliersForSelect,
+const updateSlide = async (id, data) => {
+  await ensureUniqueCode(data.code?.trim(), id);
+  const slide = await Slide.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  if (!slide) throw HttpError.notFound("Slide not found");
+  await syncLookupsFromSlides(slide);
+  return slide;
 };
+
+const findSlide = async (id) => {
+  const slide = await Slide.findById(id);
+  if (!slide) throw HttpError.notFound("Slide not found");
+  return slide;
+};
+
+const deleteSlide = async (id) => {
+  const slide = await Slide.findByIdAndDelete(id);
+  if (!slide) throw HttpError.notFound("Slide not found");
+};
+
+module.exports = { getSlides, createSlide, updateSlide, findSlide, deleteSlide };

@@ -1,22 +1,23 @@
 const jwt = require("jsonwebtoken");
-const HttpCodes = require("../constants/httpCodes");
-const AppMessages = require("../constants/appMessages");
-const ErrorResponse = require("../composer/error-response");
+const { jwtSecret } = require("../config/env");
+const HttpError = require("../utils/httpError");
 
+/**
+ * Requires a valid `Authorization: Bearer <jwt>` header and sets
+ * req.user = { id, username, role }.
+ */
 function auth(req, res, next) {
-  // const token = req.header("x-auth-token");
-  // if (!token) {
-  //   return res.status(HttpCodes.FORBIDDEN).send(new ErrorResponse(AppMessages.APP_ACCESS_DENIED));
-  // }
+  const [scheme, token] = (req.get("authorization") || "").split(" ");
+  if (scheme !== "Bearer" || !token) {
+    return next(HttpError.unauthorized());
+  }
 
   try {
-    // const decoded = jwt.verify(token, process.env.NODE_SECRET_KEY);
-    // console.log(decoded);
-    // req.user = decoded;
-
-    next();
-  } catch (ex) {
-    return res.status(HttpCodes.FORBIDDEN).send(new ErrorResponse(AppMessages.APP_ACCESS_DENIED));
+    const payload = jwt.verify(token, jwtSecret, { algorithms: ["HS256"] });
+    req.user = { id: payload.sub, username: payload.username, role: payload.role };
+    return next();
+  } catch {
+    return next(HttpError.unauthorized("Invalid or expired token"));
   }
 }
 

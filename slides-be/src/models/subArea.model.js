@@ -23,6 +23,6 @@ const subAreaSchema = new mongoose.Schema({
 
 });
 
-const SubArea = new mongoose.model("SubArea", subAreaSchema);
+const SubArea = mongoose.model("SubArea", subAreaSchema);
 exports.SubArea = SubArea;
 

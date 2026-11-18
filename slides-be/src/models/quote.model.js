@@ -5,7 +5,7 @@ const quoteSchema = new mongoose.Schema(
     quote_number: {
       type: Number,
       required: [true, "Quote number is required"],
-      default: 1,
+      unique: true,
     },
     quote_date: {
       type: Date,

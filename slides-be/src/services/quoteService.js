@@ -1,132 +1,71 @@
-const mongoose = require("mongoose");
 const Quote = require("../models/quote.model");
+const HttpError = require("../utils/httpError");
+const { containsRegex, paginatedResult } = require("../utils/query");
 
-
-const maxNumberInField = async () => {
-  try {
-    const result = await Quote.findOne().sort({ quote_number: -1 }).select('quote_number');
-    return result ? result.quote_number + 1 : 1;
-  } catch (error) {
-    console.error("Error fetching max number:", error);
-    return null;
-  }
+/**
+ * Next sequential number for `field`.
+ * NOTE: max+1 can race under concurrent creates; the unique index on the number
+ * field turns that into a 409 instead of a silent duplicate.
+ */
+const nextNumber = async (Model, field) => {
+  const last = await Model.findOne().sort({ [field]: -1 }).select(field).lean();
+  return (last?.[field] || 0) + 1;
 };
 
-const calculateQuoteAmount = async (selectedSlides) => {
-  let supQuotedAmount = 0;
-  let supAmountAferDiscount = 0;
-  let supDiscount = 0;
-  let supFinalQuotedAmount = 0;
+const sum = (slides, field) => slides.reduce((total, slide) => total + (Number(slide?.[field]) || 0), 0);
 
-  let quotedAmount = 0;
-  let quotedAmountAfterDiscount = 0;
-  let quotedDiscount = 0
-  let netQuotedAmount = 0;
-
-  selectedSlides =  selectedSlides || [];
-
-  selectedSlides.forEach((slide) => {
-    supQuotedAmount += slide.supQuotedPrice || 0;
-    supAmountAferDiscount += slide.supDiscountedPrice || 0;
-    supDiscount =  supQuotedAmount - supAmountAferDiscount;
-    supFinalQuotedAmount = supQuotedAmount -  supDiscount;
-
-    quotedAmount += slide.quotedPrice || 0;
-    quotedAmountAfterDiscount += slide.discountedPrice || 0;
-    quotedDiscount = quotedAmount - quotedAmountAfterDiscount;
-    netQuotedAmount = quotedAmount - quotedDiscount;
-  });
+const calculateQuoteAmounts = (slides = []) => {
+  const supQuotedAmount = sum(slides, "supQuotedPrice");
+  const supDiscountedAmount = sum(slides, "supDiscountedPrice");
+  const quotedAmount = sum(slides, "quotedPrice");
+  const quotedAmountAfterDiscount = sum(slides, "discountedPrice");
 
   return {
     supQuotedAmount,
-    supAmountAferDiscount,
-    supDiscount,
-    supFinalQuotedAmount,
-
+    supDiscountedAmount,
+    supDiscount: supQuotedAmount - supDiscountedAmount,
+    supFinalQuotedAmount: supDiscountedAmount,
     quotedAmount,
     quotedAmountAfterDiscount,
-    quotedDiscount,
-    netQuotedAmount,
+    quotedDiscount: quotedAmount - quotedAmountAfterDiscount,
+    netQuotedAmount: quotedAmountAfterDiscount,
   };
-}
+};
 
 const createQuote = async (data) => {
-  const exists = await Quote.findOne({ quote_number: data.quote_number });
-  if (exists) {
-    return null;
-  }
-
-  let {
-    supQuotedAmount,
-    supAmountAferDiscount,
-    supDiscount,
-    supFinalQuotedAmount,
-    quotedAmount,
-    quotedAmountAfterDiscount,
-    quotedDiscount,
-    netQuotedAmount
-  } = await calculateQuoteAmount(data.slides);
-
-  data.quote_number = await  maxNumberInField();
-
-  data.supQuotedAmount = supQuotedAmount;
-  data.supDiscountedAmount = supAmountAferDiscount;
-  data.supDiscount =  supDiscount;
-  data.supFinalQuotedAmount = supFinalQuotedAmount;
-
-  data.quotedAmount = quotedAmount;
-  data.quotedAmountAfterDiscount = quotedAmountAfterDiscount;
-  data.quotedDiscount=quotedDiscount;
-  data.netQuotedAmount = netQuotedAmount;
-
-  let result = await new Quote(data).save();
-  return result;
+  const slides = Array.isArray(data.slides) ? data.slides : [];
+  return Quote.create({
+    ...data,
+    ...calculateQuoteAmounts(slides),
+    quote_number: await nextNumber(Quote, "quote_number"),
+  });
 };
 
-const updateQuote = async (id, updateData) => {
-  const filter = { _id: mongoose.Types.ObjectId(id) };
-  const result = await Quote.findOneAndUpdate(filter, updateData);
-
-  return result;
+const updateQuote = async (id, data) => {
+  const quote = await Quote.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  if (!quote) throw HttpError.notFound("Quote not found");
+  return quote;
 };
 
-const deleteQuoteById = async (id) => {
-  const filter = { _id: mongoose.Types.ObjectId(id) };
-  const result = await Quote.findOneAndUpdate(filter, { is_active: false });
-
-  return true;
+/** Soft delete: quotes are referenced by invoices. */
+const deactivateQuote = async (id) => {
+  const quote = await Quote.findByIdAndUpdate(id, { is_active: false }, { new: true });
+  if (!quote) throw HttpError.notFound("Quote not found");
 };
 
-const findQuoteById = async (id) => {
-  const result = await Quote.findOne({ _id: mongoose.Types.ObjectId(id) });
-  return result;
+const findQuote = async (id) => {
+  const quote = await Quote.findById(id);
+  if (!quote) throw HttpError.notFound("Quote not found");
+  return quote;
 };
 
-const listQuotes = async (pageNo, pageSize, searchBy, searchText) => {
-  pageNo = pageNo || 1;
-  pageSize = req.query.pageSize || 10;
-  skipRecords = pageNo * pageSize;
-
-  const count = await Quote.countDocuments();
-  let data = null;
-
-  // if (searchText !== "") {
-  //   data = await Quote.find({ name: { $regex: searchText, $options: "i" } })
-  //     .skip(parseInt(skipRecords))
-  //     .limit(parseInt(pageSize));
-  // } else {
-  data = await Quote.find().skip(parseInt(skipRecords)).limit(parseInt(pageSize));
-  // }
-  return {
-    totalRecords: count || 0,
-    data,
-  };
+const listQuotes = async ({ pageNo, pageSize, skip, searchText }) => {
+  const filter = searchText ? { customer_name: containsRegex(searchText) } : {};
+  const [data, totalRecords] = await Promise.all([
+    Quote.find(filter).sort({ quote_number: -1 }).skip(skip).limit(pageSize),
+    Quote.countDocuments(filter),
+  ]);
+  return paginatedResult({ data, totalRecords, pageNo, pageSize });
 };
 
-module.exports = {
-  createQuote,
-  updateQuote,
-  deleteQuoteById,
-  listQuotes,
-  findQuoteById,
-};
+module.exports = { createQuote, updateQuote, deactivateQuote, findQuote, listQuotes, nextNumber };

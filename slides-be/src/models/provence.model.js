@@ -23,7 +23,7 @@ const provenceSchema = new mongoose.Schema({
 
 });
 
-const Provence = new mongoose.model("Provence", provenceSchema);
+const Provence = mongoose.model("Provence", provenceSchema);
 exports.Provence = Provence;
 
 

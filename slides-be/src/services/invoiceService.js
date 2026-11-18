@@ -1,82 +1,57 @@
-const mongoose = require("mongoose");
 const Invoice = require("../models/invoice.model");
+const HttpError = require("../utils/httpError");
+const { containsRegex, paginatedResult } = require("../utils/query");
 const quoteService = require("./quoteService");
-const { toNumber } = require("lodash");
 
-const maxNumberInField = async () => {
-  try {
-    const result = await Invoice.findOne().sort({invoice_number: -1});
-    return result ? result.invoice_number + 1 : 1;
-  } catch (error) {
-    console.error("Error fetching max number:", error);
-    return null;
+/** Creates an invoice from an existing quote. */
+const createInvoiceFromQuote = async (quoteId) => {
+  if (!quoteId) throw HttpError.badRequest("quote_id is required");
+  const quote = await quoteService.findQuote(quoteId);
+
+  if (await Invoice.exists({ quote_number: quote.quote_number })) {
+    throw HttpError.conflict("An invoice already exists for this quote");
   }
-};
 
-const createInvoice = async (data) => {
-  let invoice_number = await maxNumberInField();
-  let invoice = {
-    invoice_number: invoice_number,
+  return Invoice.create({
+    invoice_number: await quoteService.nextNumber(Invoice, "invoice_number"),
     invoice_date: new Date(),
-    invoiceAmount: data.quotedAmount,
-    invoiceDiscount: data.quotedDiscount,
-    netAmount: data.netQuotedAmount,
-    quote_number: data.quote_number,
-    quote_date: data.quote_date,
-    customer_id: data.customer_id,
-    customer_name: data.customer_name,
-    slides: data.slides,
+    invoiceAmount: quote.quotedAmount,
+    invoiceDiscount: quote.quotedDiscount,
+    netAmount: quote.netQuotedAmount,
+    quote_number: quote.quote_number,
+    quote_date: quote.quote_date,
+    customer_id: quote.customer_id,
+    customer_name: quote.customer_name,
+    slides: quote.slides,
     is_active: true,
-  };
-
-  let result = await Invoice(invoice).save();
-  return result;
+  });
 };
 
-const updateInvoice = async (id, updateData) => {
-  const filter = { _id: mongoose.Types.ObjectId(id) };
-  const result = await Invoice.findOneAndUpdate(filter, updateData);
-
-  return result;
+const updateInvoice = async (id, data) => {
+  const invoice = await Invoice.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  if (!invoice) throw HttpError.notFound("Invoice not found");
+  return invoice;
 };
 
-const deleteInvoiceById = async (id) => {
-  const filter = { _id: mongoose.Types.ObjectId(id) };
-  const result = await Invoice.findOneAndUpdate(filter, { is_active: false });
-
-  return true;
+/** Soft delete: invoices are financial records and are never removed. */
+const deactivateInvoice = async (id) => {
+  const invoice = await Invoice.findByIdAndUpdate(id, { is_active: false }, { new: true });
+  if (!invoice) throw HttpError.notFound("Invoice not found");
 };
 
 const findInvoice = async (id) => {
-  const result = await Invoice.find({ _id: mongoose.Types.ObjectId(id) });
-  return result;
+  const invoice = await Invoice.findById(id);
+  if (!invoice) throw HttpError.notFound("Invoice not found");
+  return invoice;
 };
 
-const listInvoices = async (pageNo, pageSize, searchBy, searchText) => {
-  pageNo = pageNo || 1;
-  pageSize = req.query.pageSize || 10;
-  skipRecords = pageNo * pageSize;
-
-  const count = await Invoice.countDocuments();
-  let data = null;
-
-  // if (searchText !== "") {
-  //   data = await Invoice.find({ name: { $regex: searchText, $options: "i" } })
-  //     .skip(parseInt(skipRecords))
-  //     .limit(parseInt(pageSize));
-  // } else {
-  data = await Invoice.find().skip(parseInt(skipRecords)).limit(parseInt(pageSize));
-  // }
-  return {
-    totalRecords: count || 0,
-    data,
-  };
+const listInvoices = async ({ pageNo, pageSize, skip, searchText }) => {
+  const filter = searchText ? { customer_name: containsRegex(searchText) } : {};
+  const [data, totalRecords] = await Promise.all([
+    Invoice.find(filter).sort({ invoice_number: -1 }).skip(skip).limit(pageSize),
+    Invoice.countDocuments(filter),
+  ]);
+  return paginatedResult({ data, totalRecords, pageNo, pageSize });
 };
 
-module.exports = {
-  createInvoice,
-  updateInvoice,
-  deleteInvoiceById,
-  listInvoices,
-  findInvoice,
-};
+module.exports = { createInvoiceFromQuote, updateInvoice, deactivateInvoice, findInvoice, listInvoices };

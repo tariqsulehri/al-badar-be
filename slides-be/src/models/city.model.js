@@ -23,7 +23,7 @@ const citySchema = new mongoose.Schema({
 
 });
 
-const City = new mongoose.model("City", citySchema);
+const City = mongoose.model("City", citySchema);
 exports.City = City;
 
 
