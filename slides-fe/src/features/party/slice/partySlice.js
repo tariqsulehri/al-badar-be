@@ -10,12 +10,10 @@ const partySlice = createSlice({
   initialState,
   reducers: {
     setCurrentSlide: (state, { payload }) => {
-      console.log("set current Slide");
       state.currentUser = payload;
       state.loggedIn = true;
     },
     setPartyId: (state, payload) => {
-      console.log("set Slide Id");
       state.partyId = payload;
     },
   },

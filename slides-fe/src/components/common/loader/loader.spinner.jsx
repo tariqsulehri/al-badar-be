@@ -1,27 +1,11 @@
-import PropTypes from "prop-types";
+import React from "react";
 
-const LoaderSpinner = ({ className, role, color, size, ...otherProps }) => {
+const LoaderSpinner = () => {
   return (
-    // <div
-    //   {...otherProps}
-    //   style={{
-    //     fontSize: size / 2,
-    //     color: color,
-    //     width: size + "px",
-    //     height: size + "px",
-    //   }}
-    // ></div>
-    <div>
-      
+    <div className="flex items-center justify-center p-8">
+      <div className="w-8 h-8 rounded-full border-2 border-brand/20 border-t-brand animate-spin" />
     </div>
   );
 };
-
-// LoaderSpinner.propTypes = {
-//   className: PropTypes.string.isRequired,
-//   role: PropTypes.string.isRequired,
-//   color: PropTypes.string,
-//   size: PropTypes.number.isRequired,
-// };
 
 export default LoaderSpinner;

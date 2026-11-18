@@ -1,94 +1,128 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import {setPartyId} from "../../features/party/slice/partySlice"
 import { useNavigate } from "react-router-dom";
-import SearchBar from "../../components/searchBar/search.bar.component";
+import { SearchIcon, RefreshIcon, AddIcon } from "../../components/icons";
+import PageHeader from "../../components/common/PageHeader";
 import PartyTable from "../party/components/table/party.table.component"
 import {getAllParties, deleteParty} from "../../services/apis/partyService";
-
-// import "./slides.list.component.css";
 
 const PartyList = () => {
 
   const ROWS_PER_PAGE =10;
-  const DEFAULT_SEARCH_TYPE = "_id"
+  // The API searches parties by name only.
+  const SEARCH_BY = "name";
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const [records, setRecords] = useState(null);
   const [totalRows, setTotalRows] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(ROWS_PER_PAGE);
   const [pageNo, setPageNo] = useState(0);
-  const [searchBy, setSearchBy] = useState(DEFAULT_SEARCH_TYPE);
   const [searchText, setSearchText] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
 
-
-  const handleChangeSearchBy = (e) => {
-    setSearchBy(e.target.value);
-  };
 
   const handleSearchChange = (event) => {
     setSearchText(event.target.value);
   };
 
+  const getRecords = async (
+    nextPage = pageNo,
+    nextRowsPerPage = rowsPerPage,
+    nextSearchText = searchText
+  ) => {
+    // partyService already shows an error toast and returns an empty page on failure.
+    const { data, totalRecords } = await getAllParties(nextRowsPerPage, nextPage, SEARCH_BY, nextSearchText.trim());
+    setRecords(data);
+    setTotalRows(totalRecords);
+  };
+
+  // State setters are async, so pass the new values to getRecords explicitly
+  // instead of letting it read the stale pageNo/rowsPerPage.
   const handleSearch = async () => {
     setPageNo(0);
-    await getRecords();
+    setAppliedSearch(searchText.trim());
+    await getRecords(0);
+  };
+
+  const handleReset = async () => {
+    setSearchText("");
+    setAppliedSearch("");
+    setPageNo(0);
+    await getRecords(0, rowsPerPage, "");
   };
 
   const handleChangePage = async (event, newPage) => {
     setPageNo(newPage);
-    await getRecords();
+    await getRecords(newPage);
   };
 
   const handleChangeRowsPerPage = async (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    const nextRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(nextRowsPerPage);
     setPageNo(0);
-    await getRecords();
-  };
-
-  const getRecords = async () => {
-    try {
-      let {data, totalRecords} = await getAllParties(rowsPerPage, pageNo, searchBy, searchText);
-      setRecords(data);
-      setTotalRows(totalRecords);
-
-    } catch (error) {}
+    await getRecords(0, nextRowsPerPage);
   };
 
   useEffect(() => {
-    (async () => {
-      await getRecords();
-    })();
+    getRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial load only
   }, []);
 
   const handleEdit = (id) => {
-    dispatch(setPartyId(id));
     navigate(`/party/create?id=${id}`);
   };
 
   const handleDelete = async (id) => {
-    try {
-      if (!id) throw new Error("Record not found..");
-      const resp = await deleteParty(id);
-      await getRecords();
-    } catch (error) {
-      console.log("Error Deleting Record", error.message);
-    }
+    if (!id) return;
+    const party = records?.find((r) => r._id === id);
+    if (!window.confirm(`Delete party "${party?.name || id}"? This can't be undone.`)) return;
+    // deleteParty shows its own error toast.
+    if (await deleteParty(id)) await getRecords();
   };
 
 
-  if (records && records.length > 0) {
-    return (
-      <>
-        <SearchBar searchBy={searchBy} 
-                   searchText={searchText} 
-                   onChangeSearchBy={handleChangeSearchBy} 
-                   onSearchChange={handleSearchChange} 
-                   handleSearch={handleSearch} 
-        />
+  const header = (
+    <PageHeader
+      title="Parties"
+      count={records === null ? undefined : totalRows}
+      noun="party"
+      plural="parties"
+      meta={appliedSearch ? `matching "${appliedSearch}"` : null}
+      actions={
+        <button type="button" className="ui-btn ui-btn--primary" onClick={() => navigate("/party/create")}>
+          <AddIcon fontSize="small" /> Create party
+        </button>
+      }
+    >
+      <div className="flex w-full flex-wrap items-center gap-2">
+        <div className="relative min-w-[220px] flex-1">
+          <SearchIcon fontSize="small" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input
+            type="text"
+            value={searchText}
+            onChange={handleSearchChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSearch();
+            }}
+            placeholder="Search parties by name…"
+            aria-label="Search parties by name"
+            className="h-9 w-full rounded-lg border border-border-strong bg-bg-surface-strong pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-brand focus:ring-2 focus:ring-brand-muted"
+          />
+        </div>
+        <button type="button" className="ui-btn ui-btn--primary" onClick={handleSearch}>
+          Search
+        </button>
+        <button type="button" className="ui-btn" onClick={handleReset}>
+          <RefreshIcon fontSize="small" /> Reset
+        </button>
+      </div>
+    </PageHeader>
+  );
 
+  return (
+    <section className="flex flex-col gap-4">
+      {header}
+      {records === null ? null : records.length > 0 ? (
         <PartyTable
           records={records}
           totalRows={totalRows}
@@ -99,21 +133,13 @@ const PartyList = () => {
           handleEdit={handleEdit}
           handleDelete={handleDelete}
         />
-      </>
-
-    );
-  } else {
-    return (
-      <>
-        <SearchBar searchBy={searchBy} 
-                   searchText={searchText} 
-                   onChangeSearchBy={handleChangeSearchBy} 
-                   onSearchChange={handleSearchChange} 
-                   handleSearch={handleSearch} 
-        />
-      </>
-    );
-  }
+      ) : (
+        <div className="rounded-2xl border border-border-soft bg-bg-surface p-10 text-center text-sm text-text-secondary shadow-soft">
+          {appliedSearch ? `No parties match "${appliedSearch}".` : "No parties yet."}
+        </div>
+      )}
+    </section>
+  );
 };
 
 export default PartyList;

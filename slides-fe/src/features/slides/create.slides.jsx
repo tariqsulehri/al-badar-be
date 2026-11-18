@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
 import SlideDetail from "../slides/components/cards/slideDetail.component";
 import ImageCard from "../slides/components/cards/imageCard.component";
 import { getAllProvencsForSelection } from "../../services/apis/config/provService";
@@ -10,10 +8,10 @@ import { getAllAreasForSelection } from "../../services/apis/config/areaService"
 import { getAllSubAreasForSelection } from "../../services/apis/config/subAreaService";
 import { getAllSuppliersForSelection } from "../../services/apis/partyService";
 import { lights, category, mediaTypes, dimension, status } from "../../constant/data";
-import { createSlide, getSlideById, updateSlide } from "../../services/apis/slideService";
-import { API_BASE_URL } from "../../config/constants";
+import { createSlide, getSlideById, updateSlide, uploadSlideImage } from "../../services/apis/slideService";
 import CustomButton from "../../components/form-controls/buttons/customButton";
 import { showToastNotification } from "../../helpers/notificationsHepler";
+import { errorMessage } from "../../services/axios";
 import "./create.slides.css";
 
 const emptyObject = {
@@ -55,7 +53,8 @@ const emptyObject = {
 
 const CreateSlide = () => {
   const navigate = useNavigate();
-  const id = useSelector((state) => state.slide.slideId || null);
+  // Present on /slides/edit/:id, absent on /slides/create.
+  const { id } = useParams();
   const [provences, setProvences] = useState([]);
   const [cities, setCities] = useState([]);
   const [areas, setAreas] = useState([]);
@@ -64,8 +63,7 @@ const CreateSlide = () => {
   const [formData, setFormData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const isEditing = Boolean(id?.payload);
-  const uploadEndpoint = `${API_BASE_URL.replace(/\/+$/, "")}/slides/upload`;
+  const isEditing = Boolean(id);
 
   const fetchSelections = async () => {
     try {
@@ -96,10 +94,8 @@ const CreateSlide = () => {
       setIsLoading(true);
 
       try {
-        const slideId = id?.payload;
-
-        if (slideId) {
-          const slideData = await getSlideById(slideId);
+        if (id) {
+          const slideData = await getSlideById(id);
           setFormData({ ...emptyObject, ...slideData });
         } else {
           setFormData(emptyObject);
@@ -134,16 +130,14 @@ const CreateSlide = () => {
 
     try {
       if (isEditing) {
-        await updateSlide(id.payload, formData);
-        showToastNotification("success", "Slide updated successfully");
+        await updateSlide(id, formData);
       } else {
         await createSlide(formData);
-        showToastNotification("success", "Slide created successfully");
       }
 
       navigate("/slides/list");
     } catch (error) {
-      showToastNotification("error", "Failed to save slide");
+      showToastNotification("error", errorMessage(error, "Failed to save slide"));
     } finally {
       setIsLoading(false);
     }
@@ -173,24 +167,19 @@ const CreateSlide = () => {
         return;
       }
 
-      const fileFormData = new FormData();
-      fileFormData.append("image", file);
+      const imageUrl = await uploadSlideImage(file);
 
-      const result = await axios.post(uploadEndpoint, fileFormData, {
-        headers: { "Content-Type": "multipart/form-data", "x-auth-token": "token" },
-      });
-
-      if (result.data?.file) {
+      if (imageUrl) {
         setFormData((prevData) => ({
           ...prevData,
-          image: result.data.file,
+          image: imageUrl,
         }));
         showToastNotification("success", "Image uploaded successfully");
       } else {
         showToastNotification("error", "Image upload failed");
       }
     } catch (error) {
-      showToastNotification("error", "Failed to upload image");
+      showToastNotification("error", errorMessage(error, "Failed to upload image"));
     }
   };
 

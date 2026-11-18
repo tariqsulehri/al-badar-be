@@ -1,45 +1,12 @@
-import httpClient from "../axios";
-import { showToastNotification } from "../../helpers/notificationsHepler";
+import httpClient, { unwrap } from "../axios";
 
-export const getAllUsers = async () => {
-    try {
-        const { data } = await httpClient.get("/users/list");
-        return data;
-    } catch (error) {
-        showToastNotification("error", error.message);
-    }
-};
+/** Admin only. */
+export const getUsers = async () => unwrap(await httpClient.get("/users/list")) || [];
 
-export const getUsers = async (params) => {
-    try {
-        const { data } = await httpClient.get("/users/list", { params });
-        return data;
-    } catch (error) {
-        showToastNotification("error", error.message);
-    }
-};
+/** Admin only. `data` = { username, email, password, role } */
+export const createUser = async (data) => unwrap(await httpClient.post("/users/create", data));
 
-export const createUser = async (data) => {
-    try {
-        const res = await httpClient.post("/users/create", { data });
-        return res.data;
-    } catch (error) {
-        showToastNotification("error", error.message);
-    }
-};
-
+/** Admin only. */
 export const deleteUser = async (id) => {
-    try {
-        await httpClient.delete(`/users/delete/${id}`);
-    } catch (error) {
-        showToastNotification("error", error.message);
-    }
-};
-
-export const updateUser = async (id, data) => {
-    try {
-        await httpClient.put(`/users/update/${id}`, { data });
-    } catch (error) {
-        showToastNotification("error", error.message);
-    }
+  await httpClient.delete(`/users/delete/${id}`);
 };

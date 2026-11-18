@@ -1,45 +1,31 @@
+import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { createNotification } from "../../helpers/notificationsHepler";
-import { setCurrentUser } from "../../features/auth/slice/authSlice";
+import { setCredentials } from "../../features/auth/slice/authSlice";
 import LoginForm from "../../features/auth/login.form";
 import { login } from "../../services/apis/authService";
+import { errorMessage } from "../../services/axios";
 import "./login.css";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
-
-  const assignRole = (user) => {
-    if (user.toLowerCase() === "admin") {
-      return "admin";
-    }
-    return "user";
-  };
-
-  const loginSuccess = (username) => {
-    dispatch(
-      setCurrentUser({
-        name: username,
-        role: assignRole(username),
-        token: "112324gg12444&&&&##",
-      })
-    );
-
-    createNotification("success", `Welcome ${username}!`);
-    navigate("/");
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async ({ username, password }) => {
+    setLoading(true);
     try {
-      const loggedUser = await login({ username, password });
-      if (loggedUser?.username) {
-        loginSuccess(loggedUser.username);
-      } else {
-        createNotification("error", "Invalid credentials");
-      }
+      const { token, user } = await login({ username, password });
+      dispatch(setCredentials({ token, user }));
+      createNotification("success", `Welcome ${user.username}!`);
+      const home = ["admin", "manager"].includes(user.role) ? "/dashboard" : "/";
+      navigate(location.state?.from || home, { replace: true });
     } catch (error) {
-      createNotification("error", error.message || "Login failed");
+      createNotification("error", errorMessage(error, "Login failed"));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,7 +61,7 @@ const Login = () => {
             <h2>Sign in</h2>
             <p>Use your account to access the workspace.</p>
           </div>
-          <LoginForm onSubmit={handleSubmit} />
+          <LoginForm onSubmit={handleSubmit} loading={loading} />
         </div>
       </div>
     </section>

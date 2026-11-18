@@ -1,29 +1,51 @@
-import axios from 'axios';
+import axios from "axios";
+import { API_BASE_URL } from "../config/constants";
+import { showToastNotification } from "../helpers/notificationsHepler";
 
-const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_APP_API_BASE_URL
+/**
+ * The one HTTP client for the API. Every service imports this.
+ *
+ * The store is injected from main.jsx (instead of imported here) to keep this
+ * module free of a store -> slices -> services import cycle.
+ */
+const httpClient = axios.create({ baseURL: API_BASE_URL });
+
+let store;
+let onUnauthorized = () => {};
+
+export const configureHttpClient = ({ store: appStore, onUnauthorized: handler }) => {
+  store = appStore;
+  onUnauthorized = handler;
+};
+
+httpClient.interceptors.request.use((config) => {
+  const token = store?.getState()?.auth?.token;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
+httpClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    const isLoginRequest = error.config?.url?.startsWith("/auth");
 
-// const httpClient = axios.create({
-//   baseURL: "http://localhost:3500/api"
-// });
-
-let token = "token"; 
-
-httpClient.interceptors.request.use(
-  config => {
-    // const token = JSON.parse(localStorage.getItem('persist:root')).token;
-    if (token) {
-      config.headers['Authorization'] = 'Bearer ' + token
+    if (status === 401 && !isLoginRequest) {
+      onUnauthorized();
+    } else if (status === 403) {
+      showToastNotification("error", "You don't have permission to do that.");
     }
-    config.headers['Content-Type'] = 'application/json;charset=UTF-8';
-    config.headers['Access-Control-Allow-Origin'] = '*';
-    config.headers['x-auth-token'] = `${token}`;
-    return config;
-  },
-  error => {
-    Promise.reject(error)
+    return Promise.reject(error);
   }
 );
+
+/** Unwraps the API envelope { status, message, result }. */
+export const unwrap = (response) => response?.data?.result;
+
+/** Best human-readable message from an API error. */
+export const errorMessage = (error, fallback = "Something went wrong") =>
+  error?.response?.data?.message || error?.message || fallback;
+
 export default httpClient;

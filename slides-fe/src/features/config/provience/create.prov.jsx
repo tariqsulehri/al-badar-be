@@ -10,8 +10,8 @@ import {
 const CreateProv = () => {
   return (
     <ConfigCrudForm
-      singularLabel="Provence"
-      collectionLabel="Provences"
+      singularLabel="Province"
+      collectionLabel="Provinces"
       routeBase="/setup/prov"
       findById={findProvById}
       createItem={createProv}

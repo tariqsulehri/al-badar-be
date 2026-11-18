@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./ThemeSwitcher.css";
 
-export const THEMES = [
+const THEMES = [
   {
     id:     "ocean",
     label:  "Ocean",
@@ -25,23 +25,38 @@ export const THEMES = [
   },
 ];
 
+const THEME_EVENT = "ui-theme-change";
+
+const readStoredTheme = () => {
+  try {
+    return localStorage.getItem("ui-theme") || "ocean";
+  } catch {
+    return "ocean";
+  }
+};
+
 const applyTheme = (id) => {
   document.documentElement.setAttribute("data-theme", id);
-  localStorage.setItem("ui-theme", id);
+  try {
+    localStorage.setItem("ui-theme", id);
+  } catch {
+    // storage unavailable (private mode etc.) — theme still applies for this session
+  }
+  // Keep every mounted ThemeSwitcher (nav + page) in sync.
+  window.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: id }));
 };
 
 const ThemeSwitcher = ({ variant = "dots" }) => {
-  const [active, setActive] = useState(
-    () => localStorage.getItem("ui-theme") || "ocean"
-  );
+  const [active, setActive] = useState(readStoredTheme);
 
-  // Apply on mount
-  useEffect(() => { applyTheme(active); }, []);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", readStoredTheme());
+    const onThemeChange = (e) => setActive(e.detail);
+    window.addEventListener(THEME_EVENT, onThemeChange);
+    return () => window.removeEventListener(THEME_EVENT, onThemeChange);
+  }, []);
 
-  const handleSelect = (id) => {
-    setActive(id);
-    applyTheme(id);
-  };
+  const handleSelect = (id) => applyTheme(id);
 
   if (variant === "bar") {
     return (
@@ -73,9 +88,13 @@ const ThemeSwitcher = ({ variant = "dots" }) => {
     );
   }
 
-  // dots (nav variant)
+  // dots: "dots" for dark surfaces, "header" for the light app header
   return (
-    <div className="theme-switcher" role="group" aria-label="Color theme">
+    <div
+      className={`theme-switcher${variant === "header" ? " theme-switcher--header" : ""}`}
+      role="group"
+      aria-label="Color theme"
+    >
       {THEMES.map((t) => (
         <button
           key={t.id}

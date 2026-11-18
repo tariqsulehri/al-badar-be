@@ -1,174 +1,169 @@
-import React from "react";
-import MUIDataTable from "mui-datatables";
+import React, { useMemo, useState } from "react";
+import PropTypes from "prop-types";
 import { useDispatch } from "react-redux";
-import { addSlide, clearSlides, removeSlide } from "../../slice/slidesForPptxSlice";
+import { clearSlides, removeSlide } from "../../slice/slidesForPptxSlice";
 import CustomButton from "../../../../components/form-controls/buttons/customButton";
 import { showToastNotification } from "../../../../helpers/notificationsHepler";
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { DeleteIcon } from "../../../../components/icons";
+import TablePagination from "../../../../components/common/table/TablePagination";
 import "./slide.table.css";
 
-const SelectedDataTableComponent = ({data, columns}) => {
+const SelectedDataTableComponent = ({ data = [], columns = [] }) => {
   const dispatch = useDispatch();
+  const [searchText, setSearchText] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Transform data to match column order
-  const transformedData = data.map((row, idx) => {
-    // Add a remove button at the end of each row
-    const rowData = columns.map(col => row[col.name] || '');
-    rowData.push(
-      <IconButton
-        aria-label="remove"
-        color="error"
-        size="small"
-        onClick={e => {
-          e.stopPropagation();
-          dispatch(removeSlide(row));
-          showToastNotification("success", "Slide removed from selection");
-        }}
-      >
-        <DeleteIcon fontSize="small" />
-      </IconButton>
+  const visibleColumns = useMemo(
+    () => columns.filter((col) => col.options?.display !== false),
+    [columns]
+  );
+
+  const filteredData = useMemo(() => {
+    if (!searchText.trim()) return data;
+    const query = searchText.toLowerCase();
+    return data.filter((row) =>
+      visibleColumns.some((col) => {
+        const val = row[col.name];
+        return val != null && String(val).toLowerCase().includes(query);
+      })
     );
-    return rowData;
-  });
+  }, [data, searchText, visibleColumns]);
 
-  // Add a column for the remove button
-  const columnsWithRemove = [
-    ...columns,
-    { name: "remove", label: "Remove", options: { filter: false, sort: false, searchable: false } }
-  ];
+  const totalRows = filteredData.length;
+  const paginatedData = useMemo(() => {
+    const start = page * rowsPerPage;
+    return filteredData.slice(start, start + rowsPerPage);
+  }, [filteredData, page, rowsPerPage]);
 
-  // Custom options for the table
-  const options = {
-    filterType: "dropdown",
-    search: true,
-    searchOpen: true,
-    selectableRows: "none", // Disable row selection entirely
-    pagination: true,
-    rowsPerPage: 10,
-    rowsPerPageOptions: [10, 25, 50, 100],
-    customToolbar: () => {
-      return (
-        <CustomButton 
-          id="clearAll" 
-          name="clearAll" 
-          label="Clear All" 
-          handleClick={() => {
-            dispatch(clearSlides());
-            showToastNotification("success", "All slides cleared from selection");
-          }}
-          variant="outlined"
-        />
-      );
-     },
-    customToolbarSelect: () => {
-      return null; // Disable the default toolbar
-    },
-    onRowClick: (_rowData, rowMeta) => {
-      const slide = data[rowMeta.dataIndex];
-      if (slide) dispatch(removeSlide(slide));
-    },
-    onRowSelectionChange: (_currentRowsSelected, allRowsSelected) => {
-      // Get the indexes of selected rows
-      const selectedIndexes = allRowsSelected.map((row) => row.dataIndex);
-      const selectedData = selectedIndexes.map((index) => data[index]).filter(Boolean);
+  const handleClearAll = () => {
+    dispatch(clearSlides());
+    showToastNotification("success", "All slides cleared from selection");
+  };
 
-      // Find which slides are newly selected and which are deselected
-      const selectedIds = new Set(selectedData.map(slide => slide._id));
-      const prevSelectedIds = new Set(data.map(s => s._id).filter(id => !selectedIds.has(id)));
+  const handleRemoveOne = (e, row) => {
+    e.stopPropagation();
+    dispatch(removeSlide(row));
+    showToastNotification("success", "Slide removed from selection");
+  };
 
-      // Slides to remove: previously selected but not in current selection
-      const toRemove = [...prevSelectedIds].filter(id => !selectedIds.has(id));
-      // Slides to add: currently selected but not previously selected
-      const toAdd = selectedData.filter(slide => !prevSelectedIds.has(slide._id));
-
-      toRemove.forEach(id => {
-        const slide = data.find(s => s._id === id);
-        if (slide) dispatch(removeSlide(slide));
-      });
-      if (toAdd.length > 0) {
-        dispatch(addSlide(toAdd));
-      }
-    },
-    textLabels: {
-      body: {
-        noMatch: "No matching records found",
-        toolTip: "Sort",
-        columnHeaderTooltip: column => `Sort for ${column.label}`
-      },
-      pagination: {
-        next: "Next Page",
-        previous: "Previous Page",
-        rowsPerPage: "Rows per page:",
-        displayRows: "of"
-      },
-      toolbar: {
-        search: "Search",
-        downloadCsv: "Download CSV",
-        print: "Print",
-        viewColumns: "View Columns",
-        filterTable: "Filter Table"
-      },
-      filter: {
-        all: "All",
-        title: "FILTERS",
-        reset: "RESET"
-      },
-      viewColumns: {
-        title: "Show Columns",
-        titleAria: "Show/Hide Table Columns"
-      },
-      selectedRows: {
-        text: "rows selected",
-        delete: "Delete",
-        deleteAria: "Delete Selected Rows"
-      }
-    },
-    setTableProps: () => ({
-      style: {
-        fontSize: '0.8125rem',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-      }
-    }),
-    setRowProps: () => ({
-      style: {
-        fontSize: '0.8125rem',
-        height: '32px',
-        padding: '4px 8px'
-      }
-    }),
-    setHeaderProps: () => ({
-      style: {
-        fontSize: '0.8125rem',
-        fontWeight: 600,
-        height: '40px',
-        padding: '4px 8px'
-      }
-    }),
-    responsive: 'standard',
-    tableBodyHeight: 'auto',
-    tableBodyMaxHeight: 'calc(100vh - 200px)',
-    fixedHeader: true,
-    elevation: 0,
-    downloadOptions: {
-      filename: 'selected_slides.csv',
-      separator: ',',
-    },
-    print: true,
-    viewColumns: true,
-    filter: true
+  const downloadCsv = () => {
+    if (!filteredData.length) return;
+    const header = visibleColumns.map((c) => `"${c.label}"`).join(",");
+    const rows = filteredData.map((row) =>
+      visibleColumns.map((c) => `"${row[c.name] ?? ""}"`).join(",")
+    );
+    const csvContent = "data:text/csv;charset=utf-8," + [header, ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "selected_slides.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
-    <div style={{ padding: '12px' }}>
-      <MUIDataTable
-        title="Selected Slides"
-        data={transformedData}
-        columns={columnsWithRemove}
-        options={options}
+    <div className="w-full overflow-hidden rounded-2xl border border-border-soft bg-bg-surface shadow-soft">
+      <div className="p-4 flex flex-wrap items-center justify-between gap-3 border-b border-border-soft">
+        <div className="flex items-center gap-3">
+          <h2 className="text-base font-bold text-text-primary">Selected Slides</h2>
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-muted text-brand-strong">
+            {data.length} selected
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <input
+            type="text"
+            value={searchText}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+              setPage(0);
+            }}
+            placeholder="Search selected..."
+            className="h-9 px-3 rounded-lg border border-border-soft bg-bg-surface-strong text-text-primary text-xs placeholder:text-text-muted outline-none focus:border-brand"
+          />
+          <button
+            type="button"
+            onClick={downloadCsv}
+            disabled={!filteredData.length}
+            className="h-9 px-3 rounded-lg border border-border-soft bg-bg-surface-strong text-xs font-semibold text-text-primary hover:bg-brand-muted hover:text-brand-strong disabled:opacity-40 transition-colors cursor-pointer"
+          >
+            Export CSV
+          </button>
+          <CustomButton
+            id="clearAll"
+            name="clearAll"
+            label="Clear All"
+            handleClick={handleClearAll}
+            variant="outlined"
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="grid-table">
+          <thead>
+            <tr>
+              {visibleColumns.map((col) => (
+                <th key={col.name} className="py-3 px-3 whitespace-nowrap">
+                  {col.label}
+                </th>
+              ))}
+              <th className="py-3 px-3 text-right whitespace-nowrap">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedData.length === 0 ? (
+              <tr>
+                <td colSpan={visibleColumns.length + 1} className="py-8 text-center text-text-muted">
+                  No selected slides to display
+                </td>
+              </tr>
+            ) : (
+              paginatedData.map((row, idx) => (
+                <tr key={row._id || idx}>
+                  {visibleColumns.map((col) => (
+                    <td key={col.name} className="py-2.5 px-3 whitespace-nowrap">
+                      {row[col.name] ?? "-"}
+                    </td>
+                  ))}
+                  <td className="py-2.5 px-3 text-right">
+                    <button
+                      type="button"
+                      aria-label="Remove slide from selection"
+                      onClick={(e) => handleRemoveOne(e, row)}
+                      className="p-1 rounded-lg text-text-secondary hover:text-danger hover:bg-red-500/10 transition-colors cursor-pointer"
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <TablePagination
+        count={totalRows}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(e) => {
+          setRowsPerPage(Number(e.target.value));
+          setPage(0);
+        }}
+        rowsPerPageOptions={[10, 25, 50, 100]}
       />
     </div>
   );
+};
+
+SelectedDataTableComponent.propTypes = {
+  data: PropTypes.array,
+  columns: PropTypes.array,
 };
 
 export default SelectedDataTableComponent;

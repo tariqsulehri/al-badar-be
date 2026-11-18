@@ -1,80 +1,73 @@
+import httpClient, { unwrap, errorMessage } from "../axios";
+import { showToastNotification } from "../../helpers/notificationsHepler";
 
-import httpClient from "../axios";
-import {showToastNotification} from "../../helpers/notificationsHepler"
+const EMPTY_PAGE = { data: [], totalRecords: 0 };
 
-export const getAllParties = async (rowsPerPage, pageNo, searchBy, searchText) => {
-    try{
-        let {data} = await httpClient.get(`/Party/list?pageSize=${rowsPerPage}&pageNo=${pageNo}&searchBy=${searchBy}&searchText=${searchText}`);
-        return data ? data : { data:null, totalRecords: 0 };
-    } catch(error) {
-        showToastNotification("error", "Something Went wrong..");
-        console.log("Something Went wrong", error.message);
-      }
+const notifyError = (error) => showToastNotification("error", errorMessage(error));
+
+/** `pageIndex` is 0-based (table pagination); the API is 1-based. */
+export const getAllParties = async (rowsPerPage, pageIndex = 0, searchBy = "name", searchText = "") => {
+  try {
+    const response = await httpClient.get("/party/list", {
+      params: { pageSize: rowsPerPage, pageNo: pageIndex + 1, searchBy, searchText },
+    });
+    return unwrap(response) || EMPTY_PAGE;
+  } catch (error) {
+    notifyError(error);
+    return EMPTY_PAGE;
+  }
 };
 
 export const getAllSuppliersForSelection = async () => {
-    try{
-        let {data} = await httpClient.get(`/party/suppliers/list_for_select`);
-        return Array.isArray(data) ? data : (Array.isArray(data?.result) ? data.result : []);
-    } catch(error) {
-        showToastNotification("error", "Something Went wrong..");
-        console.log("Something Went wrong", error.message);
-        return [];
-      }
+  try {
+    return unwrap(await httpClient.get("/party/suppliers/list_for_select")) || [];
+  } catch (error) {
+    notifyError(error);
+    return [];
+  }
 };
 
+/** Resolves to the party, or null if it couldn't be loaded. */
 export const findPartyById = async (id) => {
-    try{
-        const resp = await httpClient.get(`http://localhost:3500/api/Party/find/${id}`);
-        console.log(resp);
-        return resp?.data;
-    } catch(error){ 
-      console.log("Something Went wrong", "Something Went wrong");
-      showToastNotification("error", "Something Went wrong..");
-    }
+  try {
+    return unwrap(await httpClient.get(`/party/find/${id}`)) || null;
+  } catch (error) {
+    notifyError(error);
+    return null;
+  }
 };
-  
 
 export const createParty = async (data) => {
-    try{
-        const resp = await httpClient.post("/Party/create", {data});
-        data =  resp.data;
-        if(data.status === "error"){
-            return showToastNotification("error", "Duplicate or error while creating party");
-        }
-        showToastNotification("success", "Party created succfully..");
-        return data;
-    } catch(error) {
-        
-     showToastNotification("error", "Something Went wrong");
-      console.log("Something Went wrong", error.message);
-    }
+  try {
+    const party = unwrap(await httpClient.post("/party/create", { data }));
+    showToastNotification("success", "Party created successfully.");
+    return party;
+  } catch (error) {
+    notifyError(error);
+    return null;
+  }
 };
 
-export const updateParty = async (id,data) => {
-    try{
-        if(!id) throw new Error("Invalid id");
-        await httpClient.post(`/Party/update/${id}`, {data});
-        showToastNotification("success", "Party updated successfully..");
-        return true;
-
-    } catch(error){ 
-      showToastNotification("error", "Something Went wrong..");
-      console.log("Something Went wrong", error.message);
-    }
+export const updateParty = async (id, data) => {
+  try {
+    if (!id) throw new Error("Invalid id");
+    await httpClient.post(`/party/update/${id}`, { data });
+    showToastNotification("success", "Party updated successfully.");
+    return true;
+  } catch (error) {
+    notifyError(error);
+    return false;
+  }
 };
 
 export const deleteParty = async (id) => {
-    try{
-        
-        if(!id) throw new Error("Invalid id");
-        
-        await httpClient.get(`/Party/${id}`);
-        showToastNotification("success", 'Party deleted successfully.');
-        return true;
-
-    } catch(error) {
-      showToastNotification("error", "Something Went wrong");
-      console.log("Something Went wrong", error.message);
-    }
+  try {
+    if (!id) throw new Error("Invalid id");
+    await httpClient.delete(`/party/delete/${id}`);
+    showToastNotification("success", "Party deleted successfully.");
+    return true;
+  } catch (error) {
+    notifyError(error);
+    return false;
+  }
 };

@@ -1,22 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  IconButton,
-  MenuItem,
-  Paper,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-} from "@mui/material";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import { EditOutlinedIcon, DeleteOutlineIcon, AddIcon, SearchIcon, RefreshIcon } from "../../../../components/icons";
+import PageHeader from "../../../../components/common/PageHeader";
 import { useNavigate } from "react-router-dom";
-import CustomButton from "../../../../components/form-controls/buttons/customButton";
+import TablePagination from "../../../../components/common/table/TablePagination";
 import { showToastNotification } from "../../../../helpers/notificationsHepler";
 import "./configCrud.css";
 
@@ -32,14 +19,18 @@ const ConfigCrudList = ({
   const [totalRows, setTotalRows] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [pageNo, setPageNo] = useState(0);
-  const [searchBy, setSearchBy] = useState("_id");
   const [searchText, setSearchText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchRecords = async (nextPage = pageNo, nextRowsPerPage = rowsPerPage, nextSearchBy = searchBy, nextSearchText = searchText) => {
+  const fetchRecords = async (
+    nextPage = pageNo,
+    nextRowsPerPage = rowsPerPage,
+    nextSearchText = searchText
+  ) => {
     setIsLoading(true);
     try {
-      const response = await getAllItems(nextRowsPerPage, nextPage, nextSearchBy, nextSearchText);
+      // The API searches lookups by name.
+      const response = await getAllItems(nextRowsPerPage, nextPage, "name", nextSearchText.trim());
       setRecords(response?.data || []);
       setTotalRows(response?.totalRecords || 0);
     } catch (error) {
@@ -53,30 +44,28 @@ const ConfigCrudList = ({
 
   useEffect(() => {
     fetchRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial load only
   }, []);
 
-  const meta = useMemo(
-    () => [
-      { label: "Collection", value: collectionLabel },
-      { label: "Records", value: String(totalRows || records.length || 0).padStart(2, "0") },
-      { label: "Search Type", value: searchBy === "_id" ? "ID" : "Name" },
-    ],
-    [collectionLabel, records.length, searchBy, totalRows]
-  );
+  // What the current list reflects (search applied on Search/Enter, not per keystroke).
+  const [appliedSearch, setAppliedSearch] = useState("");
 
   const handleSearch = () => {
     setPageNo(0);
-    fetchRecords(0, rowsPerPage, searchBy, searchText);
+    setAppliedSearch(searchText.trim());
+    fetchRecords(0, rowsPerPage, searchText);
   };
 
   const handleRefresh = () => {
-    setSearchBy("_id");
     setSearchText("");
+    setAppliedSearch("");
     setPageNo(0);
-    fetchRecords(0, rowsPerPage, "_id", "");
+    fetchRecords(0, rowsPerPage, "");
   };
 
   const handleDelete = async (id) => {
+    const record = records.find((r) => r._id === id);
+    if (!window.confirm(`Delete ${singularLabel.toLowerCase()} "${record?.name || id}"? This can't be undone.`)) return;
     try {
       await deleteItem(id);
       showToastNotification("success", `${singularLabel} deleted successfully`);
@@ -88,110 +77,108 @@ const ConfigCrudList = ({
 
   return (
     <section className="config-crud page-section">
-      <header className="config-crud__hero page-card">
-        <div>
-          <span className="page-header__eyebrow">Collection Manager</span>
-          <h1>{collectionLabel}</h1>
-          <p>
-            Search, review, and manage canonical {collectionLabel.toLowerCase()} records from a cleaner,
-            faster operational table.
-          </p>
+      <PageHeader
+        title={collectionLabel}
+        count={isLoading ? undefined : totalRows}
+        noun={singularLabel.toLowerCase()}
+        plural={collectionLabel.toLowerCase()}
+        meta={appliedSearch ? `matching "${appliedSearch}"` : null}
+        actions={
+          <button type="button" className="ui-btn ui-btn--primary" onClick={() => navigate(`${routeBase}/create`)}>
+            <AddIcon fontSize="small" /> Create {singularLabel.toLowerCase()}
+          </button>
+        }
+      >
+        <div className="flex w-full flex-wrap items-center gap-2">
+          <div className="relative min-w-[220px] flex-1">
+            <SearchIcon fontSize="small" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              type="text"
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch();
+              }}
+              placeholder={`Search ${collectionLabel.toLowerCase()} by name…`}
+              aria-label={`Search ${collectionLabel.toLowerCase()} by name`}
+              className="h-9 w-full rounded-lg border border-border-strong bg-bg-surface-strong pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-brand focus:ring-2 focus:ring-brand-muted"
+            />
+          </div>
+          <button type="button" className="ui-btn ui-btn--primary" onClick={handleSearch}>
+            Search
+          </button>
+          <button type="button" className="ui-btn" onClick={handleRefresh}>
+            <RefreshIcon fontSize="small" /> Reset
+          </button>
         </div>
+      </PageHeader>
 
-        <div className="config-crud__hero-actions">
-          <CustomButton
-            label={`Create ${singularLabel}`}
-            handleClick={() => navigate(`${routeBase}/create`)}
-          />
-        </div>
-      </header>
-
-      <div className="config-crud__meta">
-        {meta.map((item) => (
-          <article key={item.label} className="page-card config-crud__meta-card">
-            <span>{item.label}</span>
-            <strong>{item.value}</strong>
-          </article>
-        ))}
-      </div>
-
-      <article className="page-card config-crud__search">
-        <Select value={searchBy} onChange={(event) => setSearchBy(event.target.value)} size="small">
-          <MenuItem value="_id">Search by ID</MenuItem>
-          <MenuItem value="name">Search by Name</MenuItem>
-        </Select>
-
-        <TextField
-          size="small"
-          label="Search"
-          value={searchText}
-          onChange={(event) => setSearchText(event.target.value)}
-          placeholder={`Find ${singularLabel.toLowerCase()} records`}
-        />
-
-        <CustomButton label="Search" handleClick={handleSearch} />
-        <CustomButton label="Reset" handleClick={handleRefresh} variant="outlined" />
-      </article>
-
-      <article className="page-card config-crud__table">
-        <TableContainer component={Paper} elevation={0}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+      <article className="overflow-hidden rounded-2xl border border-border-soft bg-bg-surface shadow-soft">
+        <div className="overflow-x-auto">
+          <table className="grid-table table-fixed">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th className="w-[16%]">Status</th>
+                <th className="hidden w-[30%] lg:table-cell">ID</th>
+                <th className="w-[180px] text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {records.map((row) => (
-                <TableRow key={row._id} hover>
-                  <TableCell>{row._id}</TableCell>
-                  <TableCell>{row.name || "-"}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`config-crud__status ${
-                        row.is_active ? "config-crud__status--active" : "config-crud__status--inactive"
-                      }`}
-                    >
+                <tr key={row._id}>
+                  <td>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="avatar" aria-hidden="true">{(row.name || "?").trim().charAt(0).toUpperCase()}</span>
+                      <span className="cell-title truncate">{row.name || "-"}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`chip ${row.is_active ? "chip--success" : "chip--neutral"}`}>
                       {row.is_active ? "Active" : "Inactive"}
                     </span>
-                  </TableCell>
-                  <TableCell align="right">
-                    <div className="config-crud__table-actions">
-                      <IconButton
-                        className="config-crud__icon-btn"
+                  </td>
+                  <td className="num hidden truncate text-[13px] text-text-muted lg:table-cell">{row._id}</td>
+                  <td className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        aria-label={`Edit ${row.name || "item"}`}
+                        className="row-btn row-btn--info"
                         onClick={() => navigate(`${routeBase}/create?id=${row._id}`)}
                       >
-                        <EditOutlinedIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton className="config-crud__icon-btn" onClick={() => handleDelete(row._id)}>
+                        <EditOutlinedIcon fontSize="small" /> Edit
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Delete ${row.name || "item"}`}
+                        className="row-btn row-btn--danger"
+                        onClick={() => handleDelete(row._id)}
+                      >
                         <DeleteOutlineIcon fontSize="small" />
-                      </IconButton>
+                      </button>
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            </tbody>
+          </table>
+        </div>
 
         {!isLoading && records.length === 0 && (
-          <div className="config-crud__empty">
+          <div className="py-8 text-center text-sm text-text-muted">
             No {collectionLabel.toLowerCase()} records found for the current search.
           </div>
         )}
 
         <TablePagination
-          component="div"
           count={totalRows}
           page={pageNo}
+          rowsPerPage={rowsPerPage}
           onPageChange={(_, newPage) => {
             setPageNo(newPage);
             fetchRecords(newPage);
           }}
-          rowsPerPage={rowsPerPage}
           onRowsPerPageChange={(event) => {
             const nextRows = parseInt(event.target.value, 10);
             setRowsPerPage(nextRows);
@@ -203,6 +190,14 @@ const ConfigCrudList = ({
       </article>
     </section>
   );
+};
+
+ConfigCrudList.propTypes = {
+  singularLabel: PropTypes.string.isRequired,
+  collectionLabel: PropTypes.string.isRequired,
+  routeBase: PropTypes.string.isRequired,
+  getAllItems: PropTypes.func.isRequired,
+  deleteItem: PropTypes.func.isRequired,
 };
 
 export default ConfigCrudList;

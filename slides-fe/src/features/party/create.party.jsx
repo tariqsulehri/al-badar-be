@@ -1,39 +1,45 @@
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import PageHeader from "../../components/common/PageHeader";
+import { ChevronLeftIcon, RefreshIcon } from "../../components/icons";
 import PartyDetail from "./components/partyDetail.component";
 import { getAllProvencsForSelection } from "../../services/apis/config/provService";
 import { getAllCitiesForSelection } from "../../services/apis/config/cityService";
 import { partyTypes } from "../../constant/data";
 
-import axios from "axios";
 import { createParty, findPartyById, updateParty } from "../../services/apis/partyService";
 
-const CreateParty = () => {
-  let id = useSelector((state) => state.party.partyId|| null);
- 
-  id = id?.payload;
+// Blank party form.
+const emptyObject = {
+  partyType: "",
+  name: "",
+  provence: "",
+  city: "",
+  phoneNo: "",
+  cellNo: "",
+  email: "",
+  website: "",
+  fax: "",
+  contactPerson: "",
+  contactPersonEmail: "",
+  address: "",
+  ntn: "",
+  gst: "",
+  accountNumber: "",
+  bankName: "",
+  gl_code: "",
+  remarks_internal: "",
+  is_active: true,
+};
 
-  const emptyObject = {
-    partyType: "",
-    name: "",
-    provence: "",
-    city: "",
-    phoneNo: "",
-    cellNo: "",
-    email: "",
-    website: "",
-    fax: "",
-    contactPerson: "",
-    contactPersonEmail: "",
-    address: "",
-    ntn: "",
-    gst: "",
-    accountNumber: "",
-    bankName: "",
-    gl_code: "",
-    remarks_internal: "",
-    is_active: true,
-  };
+const CreateParty = () => {
+  // The party being edited comes from the URL (/party/create?id=…), so the
+  // sidebar's "Create party" link always opens a blank form.
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get("id");
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
+
 
   let [provences, setProvences] = useState([]);
   let [cities, setCities] = useState([]);
@@ -64,8 +70,8 @@ const CreateParty = () => {
     try {
       let resp = await getAllProvencsForSelection();
       await setProvences(resp);
-    } catch (error) {
-      console.log(error.message);
+    } catch {
+      // partyService/lookup services already show an error toast.
     }
   };
 
@@ -73,8 +79,8 @@ const CreateParty = () => {
     try {
       let resp = await getAllCitiesForSelection();
       await setCities(resp);
-    } catch (error) {
-      console.log(error.message);
+    } catch {
+      // partyService/lookup services already show an error toast.
     }
   };
 
@@ -84,8 +90,8 @@ const CreateParty = () => {
         ...prevFormData,
         ...data, // Overwrite with new data from the API
       }));
-    } catch (error) {
-      console.log(error.message);
+    } catch {
+      // partyService/lookup services already show an error toast.
     }
   };
 
@@ -101,12 +107,15 @@ const CreateParty = () => {
     const fetchParty = async () => {
       try {
         if (id) {
-          const resp = await findPartyById(id);
-          await fillPartyObject(resp.result);
+          const party = await findPartyById(id);
+          if (party) await fillPartyObject(party);
+        } else {
+          // Switched from editing to "Create party" on the same route: start blank.
+          setFormData(emptyObject);
         }
-      } catch (error) {
-        console.log(error.message);
-      }
+      } catch {
+      // partyService/lookup services already show an error toast.
+    }
     };
 
     fetchParty();
@@ -117,10 +126,14 @@ const CreateParty = () => {
   };
 
   const handleSubmit = async () => {
-    if (!id) {
-      createParty(formData);
-    } else {
-      await updateParty(id, formData);
+    if (saving) return;
+    setSaving(true);
+    try {
+      // Services show their own success/error toasts; go back to the list on success.
+      const ok = id ? await updateParty(id, formData) : await createParty(formData);
+      if (ok) navigate("/party/list");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -130,20 +143,27 @@ const CreateParty = () => {
 
   const handleChangeSelect = async (event, values, controlName) => {
     setFormData({ ...formData, [`${controlName}`]: values.label });
-    console.log(controlName);
   };
 
   return (
-    <>
-      <div
-        style={{
-          margin: "0 1%",
-          display: "grid",
-          gridTemplateColumns: "60%",
-          // border: "1px solid #000",
-          padding: "0.5em",
-        }}
-      >
+    <section className="flex flex-col gap-4">
+      <PageHeader
+        title={id ? "Edit party" : "Create party"}
+        meta={id ? formData.name || null : "Supplier or client details"}
+        actions={
+          <>
+            <button type="button" className="ui-btn" onClick={() => navigate("/party/list")}>
+              <ChevronLeftIcon fontSize="small" /> Back to parties
+            </button>
+            {!id && (
+              <button type="button" className="ui-btn" onClick={handleRefresh}>
+                <RefreshIcon fontSize="small" /> Clear form
+              </button>
+            )}
+          </>
+        }
+      />
+      <div className="max-w-4xl">
        <PartyDetail
           formData={formData}
           provences={provences}
@@ -151,11 +171,12 @@ const CreateParty = () => {
           partyTypes={partyTypes}
           handleChange={handleChange}
           handleSubmit={handleSubmit}
-          handleRefresh={handleRefresh}
           handleChangeSelect={handleChangeSelect}
+          saving={saving}
+          isEditing={Boolean(id)}
         />
       </div>
-    </>
+    </section>
   );
 };
 

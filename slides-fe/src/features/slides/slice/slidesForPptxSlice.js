@@ -46,11 +46,6 @@ const slidesForPptxSlice = createSlice({
       state.currentPage = payload.page;
       state.rowsPerPage = payload.rowsPerPage;
     },
-
-    // Check if slides are selected
-    isSlideSelected: (state, { payload }) => {
-      return state.selectedSlideIds[payload._id] || false;
-    },
   },
 });
 
@@ -60,8 +55,10 @@ export const {
   removeSlide, 
   clearSlides, 
   setPagination,
-  isSlideSelected 
 } = slidesForPptxSlice.actions;
+
+// Selectors
+export const selectIsSlideSelected = (state, slideId) => Boolean(state.slidesForPptx.selectedSlideIds[slideId]);
 
 // Export reducer
 export default slidesForPptxSlice.reducer;

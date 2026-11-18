@@ -122,3 +122,17 @@
   color: var(--brand);
   font-weight: 700;
 }
+
+
+/* ── Header variant (sits on the light/dark app header) ──────────── */
+.theme-switcher--header {
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--brand-muted);
+  border-color: var(--border-soft);
+}
+
+.theme-switcher--header .theme-swatch--on {
+  border-color: var(--bg-surface-strong);
+  box-shadow: 0 0 0 2px var(--brand);
+}

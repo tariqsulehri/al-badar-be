@@ -1,12 +1,6 @@
-import { useSelector } from "react-redux"
+import { useSelector } from "react-redux";
+import { selectCurrentUser, selectIsLoggedIn } from "../features/auth/slice/authSlice";
 
-export function IsLogin(){
-  const isLogin =  useSelector(state => state?.auth?.loggedIn ? state.auth.loggedIn : false );    
-  return isLogin; 
-}
+export const useIsLoggedIn = () => useSelector(selectIsLoggedIn);
 
-export function GetCurrentUser(){
-    const currentUser =  useSelector(state => state?.auth?.currentUser ? state.auth.currentUser : null );    
-    return currentUser; 
-}
-  
+export const useCurrentUser = () => useSelector(selectCurrentUser);

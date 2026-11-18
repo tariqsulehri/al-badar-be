@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import PptxGenJS from "pptxgenjs";
+import { AddIcon, DownloadIcon } from "../../components/icons";
+import PageHeader from "../../components/common/PageHeader";
 import SearchBar from "../../components/searchBar/search.bar.component";
 import { getAllSlides, getSlidesBySearch } from "../../services/apis/slideService";
 import { getAllCitiesForSelection } from "../../services/apis/config/cityService";
@@ -9,11 +11,9 @@ import { getAllAreasForSelection } from "../../services/apis/config/areaService"
 import { getAllSubAreasForSelection } from "../../services/apis/config/subAreaService";
 import { getAllSuppliersForSelection } from "../../services/apis/partyService";
 import SlidesDataTable from "../../features/slides/components/table/slides.mui.datatable";
-import CustomButton from "../../components/form-controls/buttons/customButton";
 import { showToastNotification } from "../../helpers/notificationsHepler";
 import { addSlide, clearSlides } from "../../features/slides/slice/slidesForPptxSlice";
 import pptxHelper from "./components/helpers/pptxHelper";
-import ThemeSwitcher from "../../components/ThemeSwitcher/ThemeSwitcher";
 import { category } from "../../constant/data";
 
 const emptyFilters = {
@@ -48,11 +48,12 @@ const SlideList = () => {
   const [exportLoading, setExportLoading] = useState(false);
 
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
-  const activeSearchLabel = searchText
-    ? `${searchBy}: "${searchText}"`
-    : activeFilterCount
-      ? `${activeFilterCount} advanced filter${activeFilterCount === 1 ? "" : "s"}`
-      : "all slides";
+  const activeSearchLabel = [
+    searchText ? `matching ${searchBy} "${searchText}"` : "",
+    activeFilterCount ? `${activeFilterCount} filter${activeFilterCount === 1 ? "" : "s"}` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const fetchSlides = async (
     nextPage        = page,
@@ -75,7 +76,10 @@ const SlideList = () => {
     }
   };
 
-  useEffect(() => { fetchSlides(); }, [page, rowsPerPage]);
+  useEffect(() => {
+    fetchSlides();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch only on paging; search calls fetchSlides itself
+  }, [page, rowsPerPage]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -106,8 +110,10 @@ const SlideList = () => {
     setSearchBy(nextSearchBy);
     setSearchText(nextSearchText);
     setFilters(nextFilters);
-    setPage(0);
-    fetchSlides(0, rowsPerPage, nextSearchBy, nextSearchText, nextFilters);
+    // On another page, resetting to page 0 triggers the page effect (which sees the
+    // new search state); only fetch directly when already on page 0, to avoid a double request.
+    if (page === 0) fetchSlides(0, rowsPerPage, nextSearchBy, nextSearchText, nextFilters);
+    else setPage(0);
   };
 
   const handleSelectPage = () => {
@@ -187,93 +193,76 @@ const SlideList = () => {
   return (
     <section className="page-section surface-grid">
 
-      {/* ── Header ────────────────────────────────────────────── */}
-      <header className="page-header page-card">
-        <div>
-          <span className="page-header__eyebrow">Inventory</span>
-          <h1>Slides List</h1>
-        </div>
-
-        <div className="page-header__actions">
-          {/* Left cluster: selection actions */}
-          <CustomButton
-            label="Select Page"
-            handleClick={handleSelectPage}
-            variant="outlined"
-            disabled={loading || exportLoading || !slides.length}
-          />
-          <CustomButton
-            label={`Select All Matching (${totalRows || 0})`}
-            handleClick={handleSelectAllMatching}
-            variant="outlined"
-            disabled={loading || exportLoading || !totalRows}
-          />
-          <CustomButton
-            label="View Selected"
-            handleClick={() => navigate("/slides/selected_slides")}
-            variant="outlined"
-          />
-          <CustomButton
-            label={selectedCount ? `Generate PPTX (${selectedCount})` : "Generate PPTX"}
-            handleClick={handleGeneratePptx}
-            disabled={exportLoading || !selectedCount}
-          />
-          <CustomButton
-            label={`PPTX For Search (${totalRows || 0})`}
-            handleClick={handleGenerateSearchPptx}
-            color="success"
-            disabled={loading || exportLoading || !totalRows}
-          />
-          {selectedCount > 0 && (
-            <CustomButton
-              label={`Reset (${selectedCount})`}
-              handleClick={handleReset}
-              variant="outlined"
-              color="warning"
-            />
-          )}
-
-          {/* Divider */}
-          <div className="page-header__divider" />
-
-          {/* Right: create */}
-          <CustomButton
-            label="+ Create Slide"
-            handleClick={() => navigate("/slides/create")}
-          />
-        </div>
-      </header>
-
-      {/* ── Theme bar ─────────────────────────────────────────── */}
-      <div className="page-card" style={{ padding: "12px 20px" }}>
-        <ThemeSwitcher variant="bar" />
-      </div>
-
-      {/* ── Stat cards ────────────────────────────────────────── */}
-      <div className="stats-grid">
-        <article className="page-card stat-card">
-          <span className="stat-card__label">Total Records</span>
-          <div className="stat-card__value">{String(totalRows || 0).padStart(2, "0")}</div>
-          <div className="stat-card__detail">Matching slides in current query</div>
-        </article>
-        <article className="page-card stat-card">
-          <span className="stat-card__label">Search Field</span>
-          <div className="stat-card__value">{searchBy}</div>
-          <div className="stat-card__detail">{activeSearchLabel}</div>
-        </article>
-        <article className="page-card stat-card">
-          <span className="stat-card__label">Page Size</span>
-          <div className="stat-card__value">{rowsPerPage}</div>
-          <div className="stat-card__detail">Rows shown per page</div>
-        </article>
-        <article className={`page-card stat-card${selectedCount > 0 ? " stat-card--selected" : ""}`}>
-          <span className="stat-card__label">Selected for PPTX</span>
-          <div className="stat-card__value">{String(selectedCount).padStart(2, "0")}</div>
-          <div className="stat-card__detail">
-            {selectedCount > 0 ? "Ready to export — click Generate PPTX" : "Select rows to queue for export"}
+      {/* ── Header: title + count, then the PPTX export toolbar ── */}
+      <PageHeader
+        title="Slides"
+        count={loading ? undefined : totalRows || 0}
+        noun="slide"
+        meta={activeSearchLabel || null}
+        actions={
+          <button type="button" className="ui-btn ui-btn--primary" onClick={() => navigate("/slides/create")}>
+            <AddIcon fontSize="small" /> Create slide
+          </button>
+        }
+      >
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`chip ${selectedCount ? "chip--brand" : "chip--neutral"}`}>
+              PPTX queue <span className="num">{selectedCount}</span>
+            </span>
+            <button
+              type="button"
+              className="ui-btn"
+              onClick={handleSelectPage}
+              disabled={loading || exportLoading || !slides.length}
+            >
+              Select page
+            </button>
+            <button
+              type="button"
+              className="ui-btn"
+              onClick={handleSelectAllMatching}
+              disabled={loading || exportLoading || !totalRows}
+            >
+              Select all matching <span className="ui-btn__count">{totalRows || 0}</span>
+            </button>
+            <button
+              type="button"
+              className="ui-btn"
+              onClick={() => navigate("/slides/selected_slides")}
+              disabled={!selectedCount}
+            >
+              View queue
+            </button>
+            {selectedCount > 0 && (
+              <button type="button" className="ui-btn ui-btn--ghost" onClick={handleReset}>
+                Clear
+              </button>
+            )}
           </div>
-        </article>
-      </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className="ui-btn"
+              onClick={handleGenerateSearchPptx}
+              disabled={loading || exportLoading || !totalRows}
+              title="Export every slide matching the current search"
+            >
+              <DownloadIcon fontSize="small" /> Export search <span className="ui-btn__count">{totalRows || 0}</span>
+            </button>
+            <button
+              type="button"
+              className="ui-btn ui-btn--primary"
+              onClick={handleGeneratePptx}
+              disabled={exportLoading || !selectedCount}
+              title="Export the slides in the PPTX queue"
+            >
+              <DownloadIcon fontSize="small" />
+              {exportLoading ? "Exporting…" : "Export queue"}
+              <span className="ui-btn__count">{selectedCount}</span>
+            </button>
+          </div>
+      </PageHeader>
 
       <SearchBar onSearch={handleSearch} filterOptions={filterOptions} />
 

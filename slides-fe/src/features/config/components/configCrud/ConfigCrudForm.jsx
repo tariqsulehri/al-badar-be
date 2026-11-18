@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Grid } from "@mui/material";
 import InputField from "../../../../components/form-controls/input/textfield";
 import CheckboxField from "../../../../components/form-controls/input/checkbox";
 import CustomButton from "../../../../components/form-controls/buttons/customButton";
+import PageHeader from "../../../../components/common/PageHeader";
+import { ChevronLeftIcon, RefreshIcon } from "../../../../components/icons";
 import { showToastNotification } from "../../../../helpers/notificationsHepler";
 import "./configCrud.css";
 
@@ -51,14 +53,6 @@ const ConfigCrudForm = ({
     loadRecord();
   }, [id, findById, singularLabel]);
 
-  const meta = useMemo(
-    () => [
-      { label: "Mode", value: isEditing ? "Edit" : "Create" },
-      { label: "Collection", value: collectionLabel },
-      { label: "Status", value: formData.is_active ? "Active" : "Inactive" },
-    ],
-    [collectionLabel, formData.is_active, isEditing]
-  );
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -113,43 +107,37 @@ const ConfigCrudForm = ({
 
   return (
     <section className="config-crud page-section">
-      <header className="config-crud__hero page-card">
-        <div>
-          <span className="page-header__eyebrow">{isEditing ? "Edit Record" : "Create Record"}</span>
-          <h1>{isEditing ? `Update ${singularLabel}` : `Create ${singularLabel}`}</h1>
-          <p>
-            Keep the {collectionLabel.toLowerCase()} collection clean and consistent with a compact,
-            modern CRUD workflow.
-          </p>
-        </div>
-
-        <div className="config-crud__hero-actions">
-          <CustomButton label={`View ${collectionLabel}`} handleClick={() => navigate(`${routeBase}/list`)} />
-          <CustomButton label="Reset" handleClick={handleReset} variant="outlined" />
-        </div>
-      </header>
-
-      <div className="config-crud__meta">
-        {meta.map((item) => (
-          <article key={item.label} className="page-card config-crud__meta-card">
-            <span>{item.label}</span>
-            <strong>{item.value}</strong>
-          </article>
-        ))}
-      </div>
+      <PageHeader
+        title={isEditing ? `Edit ${singularLabel.toLowerCase()}` : `Create ${singularLabel.toLowerCase()}`}
+        meta={collectionLabel}
+        actions={
+          <>
+            <button type="button" className="ui-btn" onClick={() => navigate(`${routeBase}/list`)}>
+              <ChevronLeftIcon fontSize="small" /> Back to {collectionLabel.toLowerCase()}
+            </button>
+            <button type="button" className="ui-btn" onClick={handleReset}>
+              <RefreshIcon fontSize="small" /> Reset
+            </button>
+          </>
+        }
+      />
 
       <div className="config-crud__form-shell">
-        <article className="page-card config-crud__form-card">
-          <div className="config-crud__form-topline">
+        <article className="rounded-2xl border border-border-soft bg-bg-surface p-6 shadow-soft">
+          <div className="config-crud__form-topline flex justify-between items-center pb-4 mb-4 border-b border-border-soft">
             <div>
-              <h2>{singularLabel} Details</h2>
-              <p>Use a clean, canonical name so lists and selectors stay consistent.</p>
+              <h2 className="text-lg font-bold text-text-primary">{singularLabel} Details</h2>
+              <p className="text-xs text-text-secondary mt-0.5">
+                Use a clean, canonical name so lists and selectors stay consistent.
+              </p>
             </div>
-            <span className="config-crud__badge">{collectionLabel}</span>
+            <span className="chip chip--brand">
+              {collectionLabel}
+            </span>
           </div>
 
-          <Grid container spacing={2.5}>
-            <Grid item xs={12} md={8}>
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-12 md:col-span-8">
               <InputField
                 id="name"
                 name="name"
@@ -158,8 +146,8 @@ const ConfigCrudForm = ({
                 label={`${singularLabel} Name`}
                 onChange={handleChange}
               />
-            </Grid>
-            <Grid item xs={12} md={4}>
+            </div>
+            <div className="col-span-12 md:col-span-4 flex items-center pt-5">
               <CheckboxField
                 id="is_active"
                 name="is_active"
@@ -168,10 +156,10 @@ const ConfigCrudForm = ({
                 onChange={handleChecked}
                 width={220}
               />
-            </Grid>
-          </Grid>
+            </div>
+          </div>
 
-          <div className="config-crud__form-actions">
+          <div className="config-crud__form-actions flex justify-end gap-3 mt-6 pt-4 border-t border-border-soft">
             {isEditing && (
               <CustomButton
                 label="Delete"
@@ -191,6 +179,16 @@ const ConfigCrudForm = ({
       </div>
     </section>
   );
+};
+
+ConfigCrudForm.propTypes = {
+  singularLabel: PropTypes.string.isRequired,
+  collectionLabel: PropTypes.string.isRequired,
+  routeBase: PropTypes.string.isRequired,
+  findById: PropTypes.func.isRequired,
+  createItem: PropTypes.func.isRequired,
+  updateItem: PropTypes.func.isRequired,
+  deleteItem: PropTypes.func.isRequired,
 };
 
 export default ConfigCrudForm;

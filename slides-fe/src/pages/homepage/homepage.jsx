@@ -44,7 +44,7 @@ const Home = () => {
           </div>
 
           <div className="home-hero__welcome">
-            <strong>{currentUser ? `Welcome back, ${currentUser.name}` : "Welcome to Slides Control Center"}</strong>
+            <strong>{currentUser ? `Welcome back, ${currentUser.username}` : "Welcome to Slides Control Center"}</strong>
             <span>{currentUser ? "Your workspace is ready for feature work and daily operations." : "Sign in to unlock setup, slide, and user workflows."}</span>
           </div>
         </div>

@@ -1,44 +1,46 @@
-import React, { useState } from 'react';
-import { TextField, Button, MenuItem, Box, Typography, FormControl, InputLabel, Select, FormHelperText } from '@mui/material';
-import httpClient from '../../services/axios';
+import React, { useState } from "react";
+import { createUser } from "../../services/apis/userService";
+import { errorMessage } from "../../services/axios";
 
 const roles = [
-  { value: 'user', label: 'User' },
-  { value: 'manager', label: 'Manager' },
-  { value: 'admin', label: 'Admin' },
+  { value: "user", label: "User" },
+  { value: "manager", label: "Manager" },
+  { value: "admin", label: "Admin" },
 ];
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const CreateUser = () => {
   const [form, setForm] = useState({
-    username: '',
-    password: '',
-    email: '',
-    role: '',
+    username: "",
+    password: "",
+    email: "",
+    role: "",
   });
   const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState('');
-  const [apiError, setApiError] = useState('');
+  const [success, setSuccess] = useState("");
+  const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const newErrors = {};
     if (!form.username) {
-      newErrors.username = 'Username is required';
+      newErrors.username = "Username is required";
     } else if (/\s/.test(form.username)) {
-      newErrors.username = 'Username must not contain spaces';
+      newErrors.username = "Username must not contain spaces";
     }
     if (!form.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!emailRegex.test(form.email)) {
-      newErrors.email = 'Invalid email address';
+      newErrors.email = "Invalid email address";
     }
     if (!form.role) {
-      newErrors.role = 'Role is required';
+      newErrors.role = "Role is required";
     }
     if (!form.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
+    } else if (form.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -47,105 +49,108 @@ const CreateUser = () => {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: undefined });
-    setSuccess('');
-    setApiError('');
+    setSuccess("");
+    setApiError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
-    setApiError('');
-    setSuccess('');
+    setApiError("");
+    setSuccess("");
     try {
-      await httpClient.post('http://localhost:3500/api/users/create', {
+      await createUser({
         username: form.username,
         password: form.password,
         email: form.email,
         role: form.role,
       });
-      setSuccess('User created successfully!');
-      setForm({ username: '', password: '', email: '', role: '' });
+      setSuccess("User created successfully!");
+      setForm({ username: "", password: "", email: "", role: "" });
     } catch (err) {
-      setApiError(err.response?.data?.message || err.message);
+      setApiError(errorMessage(err));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box minHeight="60vh" display="flex" justifyContent="center" bgcolor="#fff" sx={{ pt: 5 }}>
-      <Box maxWidth={320} width="100%" boxShadow={2} borderRadius={2} bgcolor="#fff" mt={3} minHeight={220} display="flex" flexDirection="column" justifyContent="center" sx={{ p: '15px' }}>
-        <Typography variant="h5" mb={1.5} fontWeight={600} align="center">Create User</Typography>
-        <form onSubmit={handleSubmit} noValidate>
-          <TextField
-            label="Username"
-            name="username"
-            value={form.username}
-            onChange={handleChange}
-            fullWidth
-            margin="dense"
-            error={!!errors.username}
-            helperText={errors.username}
-            autoComplete="off"
-            InputProps={{ style: { textAlign: 'center' } }}
-          />
-          <TextField
-            label="Email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            fullWidth
-            margin="dense"
-            error={!!errors.email}
-            helperText={errors.email}
-            autoComplete="off"
-            InputProps={{ style: { textAlign: 'center' } }}
-          />
-          <TextField
-            label="Password"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            fullWidth
-            margin="dense"
-            error={!!errors.password}
-            helperText={errors.password}
-            autoComplete="new-password"
-            InputProps={{ style: { textAlign: 'center' } }}
-          />
-          <FormControl fullWidth margin="dense" error={!!errors.role}>
-            <InputLabel id="role-label">Role</InputLabel>
-            <Select
-              labelId="role-label"
+    <div className="min-h-[60vh] flex justify-center items-start pt-10">
+      <div className="w-full max-w-sm p-6 rounded-2xl border border-border-soft bg-bg-surface shadow-soft">
+        <h2 className="text-xl font-bold text-center mb-6 text-text-primary">Create User</h2>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Username</label>
+            <input
+              type="text"
+              name="username"
+              value={form.username}
+              onChange={handleChange}
+              placeholder="Username"
+              className="w-full h-10 px-3 rounded-xl border border-border-soft bg-bg-surface-strong text-text-primary text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-muted"
+            />
+            {errors.username && <p className="text-xs text-danger mt-1">{errors.username}</p>}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="user@example.com"
+              className="w-full h-10 px-3 rounded-xl border border-border-soft bg-bg-surface-strong text-text-primary text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-muted"
+            />
+            {errors.email && <p className="text-xs text-danger mt-1">{errors.email}</p>}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+              className="w-full h-10 px-3 rounded-xl border border-border-soft bg-bg-surface-strong text-text-primary text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-muted"
+            />
+            {errors.password && <p className="text-xs text-danger mt-1">{errors.password}</p>}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Role</label>
+            <select
               name="role"
               value={form.role}
-              label="Role"
               onChange={handleChange}
+              className="w-full h-10 px-3 rounded-xl border border-border-soft bg-bg-surface-strong text-text-primary text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-muted cursor-pointer"
             >
-              {roles.map((role) => (
-                <MenuItem key={role.value} value={role.value}>{role.label.toLowerCase()}</MenuItem>
+              <option value="">Select a role</option>
+              {roles.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
               ))}
-            </Select>
-            {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
-          </FormControl>
-          {apiError && <Typography color="error" mt={1}>{apiError}</Typography>}
-          {success && <Typography color="primary" mt={1}>{success}</Typography>}
-          <Button
+            </select>
+            {errors.role && <p className="text-xs text-danger mt-1">{errors.role}</p>}
+          </div>
+
+          {apiError && <p className="text-xs text-danger font-medium text-center">{apiError}</p>}
+          {success && <p className="text-xs text-success font-medium text-center">{success}</p>}
+
+          <button
             type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ mt: 1.5, textTransform: 'none', fontWeight: 600 }}
             disabled={loading}
+            className="ui-btn ui-btn--primary h-10 w-full"
           >
-            {loading ? 'Creating...' : 'Create User'}
-          </Button>
+            {loading ? "Creating..." : "Create User"}
+          </button>
         </form>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 };
 
-export default CreateUser; 
+export default CreateUser;

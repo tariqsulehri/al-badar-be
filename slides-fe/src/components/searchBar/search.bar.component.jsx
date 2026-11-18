@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Autocomplete, Box, Button, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import RefreshIcon from "@mui/icons-material/Refresh";
+import PropTypes from "prop-types";
+import { SearchIcon, RefreshIcon } from "../icons";
 import "./search.bar.css";
 
 const SEARCH_FIELDS = [
@@ -35,7 +34,6 @@ const normalizeOptions = (options = []) =>
       if (typeof option === "string") {
         return { label: option, value: option };
       }
-
       const label = option?.label || option?.name || option?.value || "";
       return label ? { label, value: option?.value || label } : null;
     })
@@ -57,86 +55,99 @@ const SearchBar = ({ onSearch, filterOptions = {} }) => {
     onSearch("code", "", emptyFilters);
   };
 
-  const handleFilterChange = (field, option) => {
+  const handleFilterChange = (field, value) => {
     const nextFilters = {
       ...filters,
-      [field]: option?.label || "",
+      [field]: value,
     };
-
     setFilters(nextFilters);
     onSearch(searchBy, searchText.trim(), nextFilters);
   };
 
-  const getSelectedOption = (field, options) => {
-    if (!filters[field]) {
-      return null;
-    }
-
-    return options.find((option) => option.label === filters[field]) || { label: filters[field], value: filters[field] };
-  };
-
   const advancedFields = [
-    { field: "city", label: "City", options: normalizeOptions(filterOptions.cities) },
-    { field: "area", label: "Area", options: normalizeOptions(filterOptions.areas) },
-    { field: "subArea", label: "Sub Area", options: normalizeOptions(filterOptions.subAreas) },
-    { field: "supplier", label: "Supplier", options: normalizeOptions(filterOptions.suppliers) },
-    { field: "category", label: "Category", options: normalizeOptions(filterOptions.categories) },
+    { field: "city", label: "City", plural: "Cities", options: normalizeOptions(filterOptions.cities) },
+    { field: "area", label: "Area", plural: "Areas", options: normalizeOptions(filterOptions.areas) },
+    { field: "subArea", label: "Sub Area", plural: "Sub Areas", options: normalizeOptions(filterOptions.subAreas) },
+    { field: "supplier", label: "Supplier", plural: "Suppliers", options: normalizeOptions(filterOptions.suppliers) },
+    { field: "category", label: "Category", plural: "Categories", options: normalizeOptions(filterOptions.categories) },
   ];
 
   return (
-    <Box className="search-bar-panel page-card">
-      <div className="search-bar-row">
-        <FormControl className="search-select-form" size="small">
-          <InputLabel>Search By</InputLabel>
-          <Select value={searchBy} label="Search By" onChange={(e) => setSearchBy(e.target.value)}>
-            {SEARCH_FIELDS.map((field) => (
-              <MenuItem key={field.value} value={field.value}>
-                {field.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+    <div className="w-full p-4 rounded-2xl border border-border-soft bg-bg-surface shadow-soft mb-4">
+      <div className="flex flex-wrap items-center gap-3 mb-3">
+        <select
+          value={searchBy}
+          onChange={(e) => setSearchBy(e.target.value)}
+          aria-label="Search field"
+          className="h-9 px-3 rounded-lg border border-border-soft bg-bg-surface-strong text-text-primary text-[13px] font-medium outline-none focus:border-brand cursor-pointer"
+        >
+          {SEARCH_FIELDS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </select>
 
-        <TextField
-          className="search-input"
-          label="Search"
-          variant="outlined"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSearch();
-            }
-          }}
-          size="small"
-          placeholder="Search slide records"
-        />
+        <div className="flex-1 min-w-[220px]">
+          <input
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSearch();
+            }}
+            placeholder="Search slide records..."
+            className="w-full h-9 px-3.5 rounded-lg border border-border-soft bg-bg-surface-strong text-text-primary placeholder:text-text-muted text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-muted transition-all"
+          />
+        </div>
 
-        <Button variant="contained" startIcon={<SearchIcon />} onClick={handleSearch} className="search-btn">
-          Search
-        </Button>
+        <button
+          type="button"
+          onClick={handleSearch}
+          className="ui-btn ui-btn--primary"
+        >
+          <SearchIcon fontSize="small" />
+          <span>Search</span>
+        </button>
 
-        <Button variant="outlined" startIcon={<RefreshIcon />} onClick={handleRefresh} className="search-btn">
-          Reset
-        </Button>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          className="ui-btn"
+        >
+          <RefreshIcon fontSize="small" />
+          <span>Reset</span>
+        </button>
       </div>
 
-      <div className="advanced-filter-grid">
-        {advancedFields.map(({ field, label, options }) => (
-          <Autocomplete
-            key={field}
-            size="small"
-            options={options}
-            value={getSelectedOption(field, options)}
-            onChange={(event, option) => handleFilterChange(field, option)}
-            getOptionLabel={(option) => option?.label || ""}
-            isOptionEqualToValue={(option, value) => option.label === value.label}
-            renderInput={(params) => <TextField {...params} label={label} />}
-          />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 pt-2 border-t border-border-soft/60">
+        {advancedFields.map(({ field, label, plural, options }) => (
+          <div key={field} className="flex flex-col gap-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+              {label}
+            </span>
+            <select
+              value={filters[field]}
+              onChange={(e) => handleFilterChange(field, e.target.value)}
+              className="h-9 px-2.5 rounded-lg border border-border-soft bg-bg-surface-strong text-text-primary text-xs outline-none focus:border-brand cursor-pointer"
+            >
+              <option value="">All {plural}</option>
+              {options.map((opt) => (
+                <option key={opt.value} value={opt.label}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
         ))}
       </div>
-    </Box>
+    </div>
   );
+};
+
+SearchBar.propTypes = {
+  onSearch: PropTypes.func.isRequired,
+  filterOptions: PropTypes.object,
 };
 
 export default SearchBar;

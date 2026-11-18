@@ -8,15 +8,14 @@
   grid-template-columns: minmax(0, 1.15fr) auto;
   gap: 18px;
   align-items: end;
-  padding: 28px;
-  background:
-    radial-gradient(circle at top right, rgba(245, 158, 11, 0.14), transparent 24%),
-    linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0.96));
+  padding: 18px 22px;
+  background: var(--bg-surface);
+  border-left: 4px solid var(--brand);
 }
 
 .slide-editor__hero h1 {
   margin: 14px 0 10px;
-  font-size: clamp(2rem, 4vw, 3.3rem);
+  font-size: 22px;
   letter-spacing: -0.05em;
 }
 
@@ -120,7 +119,7 @@
   place-items: center;
   min-height: 320px;
   text-align: center;
-  padding: 24px;
+  padding: 18px;
 }
 
 .slide-image-card {
@@ -168,7 +167,7 @@
   min-height: 320px;
   display: grid;
   place-items: center;
-  padding: 28px;
+  padding: 18px 22px;
   text-align: center;
   color: rgba(255, 255, 255, 0.88);
 }

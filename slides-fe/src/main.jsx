@@ -4,6 +4,8 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store/store";
+import { configureHttpClient } from "./services/axios";
+import { logout } from "./features/auth/slice/authSlice";
 import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -12,7 +14,15 @@ import Loader from "./components/common/loader/loader.spinner";
 
 import "react-toastify/dist/ReactToastify.css";
 import "./assets/global.css";
-import AppRoutes from "./routes";
+
+configureHttpClient({
+  store,
+  // Expired or invalid token: clear the session and send the user to sign in.
+  onUnauthorized: () => {
+    store.dispatch(logout());
+    if (window.location.pathname !== "/login") window.location.assign("/login");
+  },
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -53,7 +53,7 @@ const SelectedSlideList = () => {
       dispatch(clearSlides());
       showToastNotification("success", "PPTX generated and selected slides reset");
     } catch (error) {
-      console.log(error.message);
+      showToastNotification("error", `Could not generate the PPTX: ${error.message}`);
     }
   };
 

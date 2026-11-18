@@ -51,14 +51,7 @@ const pptxHelper = {
     });
   },
 
-  pptxLogoTable: async function (slide, formData) {
-    let options = {
-      valign: "center",
-      align: "center",
-      fontFace: "Arial",
-      fontSize: "10",
-    };
-
+  pptxLogoTable: async function (slide) {
     let arrTabRows1 = [
       [
         {

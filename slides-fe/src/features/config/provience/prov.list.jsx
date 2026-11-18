@@ -5,8 +5,8 @@ import { deleteProv, getAllProv } from "../../../services/apis/config/provServic
 const ListProv = () => {
   return (
     <ConfigCrudList
-      singularLabel="Provence"
-      collectionLabel="Provences"
+      singularLabel="Province"
+      collectionLabel="Provinces"
       routeBase="/setup/prov"
       getAllItems={getAllProv}
       deleteItem={deleteProv}

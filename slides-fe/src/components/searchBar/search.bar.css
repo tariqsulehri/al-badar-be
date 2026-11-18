@@ -22,14 +22,6 @@
   margin-top: 14px;
 }
 
-.search-btn.MuiButton-root {
-  min-height: 40px;
-  border-radius: 8px;
-  text-transform: none;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 @media (max-width: 900px) {
   .search-bar-row {
     grid-template-columns: 1fr;

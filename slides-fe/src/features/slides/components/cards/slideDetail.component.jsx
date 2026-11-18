@@ -1,21 +1,33 @@
-import { Card, Grid } from "@mui/material";
+import React from "react";
+import PropTypes from "prop-types";
 import Select from "../../../../components/form-controls/select/Select";
 import InputField from "../../../../components/form-controls/input/textfield";
 import CustomButton from "../../../../components/form-controls/buttons/customButton";
 import DigitalSlide from "../../../../features/slides/degital.slide.component";
 
 const SectionCard = ({ title, description, tag, children }) => (
-  <Card className="page-card slide-editor__section" elevation={0}>
-    <div className="slide-editor__section-header">
+  <div className="page-card p-6 mb-6">
+    <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-border-soft">
       <div>
-        <h2>{title}</h2>
-        <p>{description}</p>
+        <h2 className="text-lg font-bold text-text-primary">{title}</h2>
+        <p className="text-xs text-text-secondary mt-0.5">{description}</p>
       </div>
-      {tag ? <span className="slide-editor__section-tag">{tag}</span> : null}
+      {tag ? (
+        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-brand-muted text-brand-strong">
+          {tag}
+        </span>
+      ) : null}
     </div>
     {children}
-  </Card>
+  </div>
 );
+
+SectionCard.propTypes = {
+  title: PropTypes.string,
+  description: PropTypes.string,
+  tag: PropTypes.string,
+  children: PropTypes.node,
+};
 
 const SlideDetail = ({
   formData,
@@ -36,9 +48,7 @@ const SlideDetail = ({
   isEditing,
   isLoading,
 }) => {
-  if (!formData) {
-    return null;
-  }
+  if (!formData) return null;
 
   return (
     <>
@@ -47,8 +57,8 @@ const SlideDetail = ({
         description="Define the inventory code, supplier mapping, and the location taxonomy for this slide."
         tag="Foundation"
       >
-        <Grid container spacing={2.25}>
-          <Grid item xs={12} md={6}>
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-12 md:col-span-6">
             <InputField
               width="100%"
               id="code"
@@ -59,8 +69,8 @@ const SlideDetail = ({
               label="Slide Code"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </div>
+          <div className="col-span-12 md:col-span-6">
             <Select
               id="supplier"
               name="supplier"
@@ -70,19 +80,19 @@ const SlideDetail = ({
               label="Supplier"
               width="100%"
             />
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </div>
+          <div className="col-span-12 md:col-span-6">
             <Select
               id="provence"
               name="provence"
               value={formData.provence || null}
               onChange={(event, values) => handleChangeSelect(event, values, "provence")}
               options={provences}
-              label="Provence"
+              label="Province"
               width="100%"
             />
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </div>
+          <div className="col-span-12 md:col-span-6">
             <Select
               name="city"
               value={formData.city || null}
@@ -91,8 +101,8 @@ const SlideDetail = ({
               label="City"
               width="100%"
             />
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </div>
+          <div className="col-span-12 md:col-span-6">
             <Select
               name="area"
               value={formData.area || null}
@@ -101,8 +111,8 @@ const SlideDetail = ({
               label="Area"
               width="100%"
             />
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </div>
+          <div className="col-span-12 md:col-span-6">
             <Select
               name="subArea"
               value={formData.subArea || null}
@@ -111,8 +121,8 @@ const SlideDetail = ({
               label="Sub Area"
               width="100%"
             />
-          </Grid>
-        </Grid>
+          </div>
+        </div>
       </SectionCard>
 
       <SectionCard
@@ -120,8 +130,8 @@ const SlideDetail = ({
         description="Capture traffic direction, media format, dimensions, lighting, and operational availability."
         tag="Placement"
       >
-        <Grid container spacing={2.25}>
-          <Grid item xs={12} md={6}>
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-12 md:col-span-6">
             <InputField
               id="trafic_facing_coming"
               name="trafic_facing_coming"
@@ -132,8 +142,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </div>
+          <div className="col-span-12 md:col-span-6">
             <InputField
               id="facing_trafic_going"
               name="facing_trafic_going"
@@ -144,8 +154,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <Select
               name="mediaType"
               value={formData.mediaType || null}
@@ -154,8 +164,8 @@ const SlideDetail = ({
               label="Media Type"
               width="100%"
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <Select
               name="category"
               value={formData.category || null}
@@ -164,8 +174,8 @@ const SlideDetail = ({
               label="Category"
               width="100%"
             />
-          </Grid>
-          <Grid item xs={12} md={2}>
+          </div>
+          <div className="col-span-12 md:col-span-2">
             <InputField
               id="height_feets"
               name="height_feets"
@@ -177,8 +187,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={2}>
+          </div>
+          <div className="col-span-12 md:col-span-2">
             <InputField
               id="width_feets"
               name="width_feets"
@@ -190,11 +200,11 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
+          </div>
           {formData.mediaType === "Digital" && (
             <DigitalSlide handleChange={handleChange} formData={formData} />
           )}
-          <Grid item xs={12} md={4}>
+          <div className="col-span-12 md:col-span-4">
             <Select
               name="dimension"
               value={formData.dimension || null}
@@ -203,8 +213,8 @@ const SlideDetail = ({
               label="Dimension"
               width="100%"
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <Select
               name="lights"
               value={formData.lights || null}
@@ -213,8 +223,8 @@ const SlideDetail = ({
               label="Lights"
               width="100%"
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <Select
               name="status"
               value={formData.status || null}
@@ -223,8 +233,8 @@ const SlideDetail = ({
               label="Status"
               width="100%"
             />
-          </Grid>
-        </Grid>
+          </div>
+        </div>
       </SectionCard>
 
       <SectionCard
@@ -232,8 +242,8 @@ const SlideDetail = ({
         description="Track supplier pricing, customer pricing, and geographic visibility metrics."
         tag="Commercial"
       >
-        <Grid container spacing={2.25}>
-          <Grid item xs={12} md={4}>
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-12 md:col-span-4">
             <InputField
               id="supQuotedPrice"
               name="supQuotedPrice"
@@ -245,8 +255,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <InputField
               id="supDiscountedPrice"
               name="supDiscountedPrice"
@@ -258,8 +268,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <InputField
               id="supFinalPrice"
               name="supFinalPrice"
@@ -271,8 +281,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <InputField
               id="quotedPrice"
               name="quotedPrice"
@@ -284,8 +294,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <InputField
               id="discountedPrice"
               name="discountedPrice"
@@ -297,8 +307,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <InputField
               id="finalPrice"
               name="finalPrice"
@@ -310,8 +320,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <InputField
               id="latitude"
               name="latitude"
@@ -323,8 +333,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <InputField
               id="longitude"
               name="longitude"
@@ -336,8 +346,8 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </div>
+          <div className="col-span-12 md:col-span-4">
             <InputField
               id="eyeBall"
               name="eyeBall"
@@ -349,10 +359,10 @@ const SlideDetail = ({
               width="100%"
               onChange={handleChange}
             />
-          </Grid>
-        </Grid>
+          </div>
+        </div>
 
-        <div className="slide-editor__footer-actions">
+        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-border-soft">
           <CustomButton
             id="new"
             name="new"
@@ -371,6 +381,26 @@ const SlideDetail = ({
       </SectionCard>
     </>
   );
+};
+
+SlideDetail.propTypes = {
+  formData: PropTypes.object,
+  suppliers: PropTypes.array,
+  provences: PropTypes.array,
+  cities: PropTypes.array,
+  areas: PropTypes.array,
+  subAreas: PropTypes.array,
+  lights: PropTypes.array,
+  category: PropTypes.array,
+  mediaTypes: PropTypes.array,
+  dimension: PropTypes.array,
+  status: PropTypes.array,
+  handleChange: PropTypes.func,
+  handleSubmit: PropTypes.func,
+  handleRefresh: PropTypes.func,
+  handleChangeSelect: PropTypes.func,
+  isEditing: PropTypes.bool,
+  isLoading: PropTypes.bool,
 };
 
 export default SlideDetail;

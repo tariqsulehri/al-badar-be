@@ -1,5 +1,4 @@
 import PageNotFound from "./components/pageNotFound";
-import PropTypes from "prop-types";
 
 const NotFound = () => {
   return <PageNotFound />;

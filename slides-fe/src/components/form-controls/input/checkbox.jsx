@@ -1,15 +1,5 @@
 import React from "react";
-import { Checkbox, FormControlLabel } from "@mui/material";
-import Stylesheet from "reactjs-stylesheet";
 import PropTypes from "prop-types";
-
-const styles = Stylesheet.create({
-  checkbox: {
-    padding: "3px",
-    marginBottom: "10px",
-    fontSize: 13,
-  },
-});
 
 const CheckboxField = ({
   id,
@@ -18,23 +8,31 @@ const CheckboxField = ({
   width = 400,
   checked = false,
   onChange,
+  className = "",
+  style = {},
   ...otherProps
 }) => {
+  const containerStyle = {
+    ...(width ? { width } : {}),
+    ...style,
+  };
+
   return (
-    <div style={{ width: width, marginBottom: styles.checkbox.marginBottom }}>
-      <FormControlLabel
-        control={
-          <Checkbox
-            className={styles.checkbox}
-            id={id}
-            name={name}
-            checked={checked}
-            onChange={onChange}
-            {...otherProps}
-          />
-        }
-        label={<span style={{ fontSize: styles.checkbox.fontSize }}>{label}</span>}
+    <div className={`flex items-center gap-2 mb-2.5 ${className}`} style={containerStyle}>
+      <input
+        type="checkbox"
+        id={id}
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        className="w-4 h-4 rounded border-border-soft text-brand accent-[var(--brand)] focus:ring-2 focus:ring-brand-muted cursor-pointer transition-colors"
+        {...otherProps}
       />
+      {label && (
+        <label htmlFor={id} className="text-sm font-medium text-text-primary cursor-pointer select-none">
+          {label}
+        </label>
+      )}
     </div>
   );
 };
@@ -44,8 +42,10 @@ CheckboxField.propTypes = {
   name: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
   checked: PropTypes.bool,
-  width: PropTypes.number,
-  onChange: PropTypes.func.isRequired
+  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onChange: PropTypes.func.isRequired,
+  className: PropTypes.string,
+  style: PropTypes.object,
 };
 
 CheckboxField.defaultProps = {

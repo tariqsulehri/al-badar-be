@@ -1,5 +1,6 @@
 .config-crud {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
 }
 
@@ -8,16 +9,15 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 18px;
   align-items: end;
-  padding: 28px;
-  background:
-    radial-gradient(circle at top right, rgba(245, 158, 11, 0.14), transparent 22%),
-    linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0.96));
+  padding: 18px 22px;
+  background: var(--bg-surface);
+  border-left: 4px solid var(--brand);
 }
 
 .config-crud__hero h1 {
   margin: 14px 0 10px;
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  letter-spacing: -0.05em;
+  font-size: 22px;
+  letter-spacing: -0.02em;
 }
 
 .config-crud__hero p {
@@ -41,15 +41,10 @@
 
 .config-crud__search {
   display: grid;
-  grid-template-columns: 180px minmax(220px, 1fr) auto auto;
+  grid-template-columns: 180px minmax(0, 1fr) auto auto;
   gap: 14px;
   align-items: center;
-  padding: 22px;
-}
-
-.config-crud__search .MuiFormControl-root,
-.config-crud__search .MuiTextField-root {
-  width: 100%;
+  padding: 14px 16px;
 }
 
 .config-crud__table {
@@ -136,26 +131,6 @@
   letter-spacing: -0.03em;
 }
 
-.config-crud__table .MuiTable-root {
-  min-width: 860px;
-}
-
-.config-crud__table .MuiTableHead-root {
-  background: rgba(15, 118, 110, 0.06);
-}
-
-.config-crud__table .MuiTableCell-head {
-  color: var(--text-primary);
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-}
-
-.config-crud__table .MuiTableCell-body {
-  font-size: 14px;
-  color: var(--text-primary);
-}
-
 .config-crud__status {
   display: inline-flex;
   align-items: center;
@@ -179,11 +154,6 @@
 .config-crud__table-actions {
   display: flex;
   gap: 8px;
-}
-
-.config-crud__icon-btn.MuiIconButton-root {
-  border: 1px solid var(--border-soft);
-  border-radius: 12px;
 }
 
 @media (max-width: 900px) {

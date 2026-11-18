@@ -1,57 +1,58 @@
 import React from "react";
-import { Button, styled, ButtonProps } from "@mui/material";
 
-const StyledButton = styled(Button)(() => ({
-  minWidth: "132px",
-  minHeight: "42px",
-  margin: "4px",
-  padding: "10px 18px",
-  textTransform: "none",
-  borderRadius: "16px",
-  fontSize: "14px",
-  fontWeight: 700,
-  letterSpacing: "-0.01em",
-  boxShadow: "0 16px 32px rgba(15, 23, 42, 0.12)",
-  transition: "transform 160ms ease, box-shadow 160ms ease, background 160ms ease",
-  "&:hover": {
-    boxShadow: "0 22px 36px rgba(15, 23, 42, 0.16)",
-    transform: "translateY(-1px)",
-  },
-  "&:active": {
-    transform: "translateY(0)",
-    boxShadow: "0 10px 20px rgba(15, 23, 42, 0.12)",
-  },
-}));
-
-interface CustomButtonProps extends Omit<ButtonProps, "variant" | "color"> {
+interface CustomButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "text" | "contained" | "outlined";
   color?: "primary" | "secondary" | "success" | "error" | "info" | "warning";
   label: string;
-  handleClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  handleClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  className?: string;
 }
 
 const CustomButton: React.FC<CustomButtonProps> = ({
-  type,
+  type = "button",
   id,
   name,
   label,
   handleClick,
   variant = "contained",
   color = "primary",
+  className = "",
+  disabled = false,
   ...props
 }) => {
+  let colorClasses = "";
+  if (variant === "contained") {
+    if (color === "error") {
+      colorClasses = "bg-danger text-on-brand hover:opacity-90";
+    } else if (color === "success") {
+      colorClasses = "bg-success text-on-brand hover:opacity-90";
+    } else {
+      colorClasses = "bg-brand text-on-brand hover:bg-brand-strong";
+    }
+  } else if (variant === "outlined") {
+    if (color === "error") {
+      colorClasses = "border border-danger text-danger hover:bg-danger-muted";
+    } else if (color === "warning") {
+      colorClasses = "border border-border-strong text-warning hover:bg-warning-muted";
+    } else {
+      colorClasses = "border border-border-strong bg-bg-surface-strong text-text-primary hover:border-brand hover:text-brand-strong";
+    }
+  } else {
+    colorClasses = "text-text-primary hover:bg-brand-muted hover:text-brand-strong";
+  }
+
   return (
-    <StyledButton
+    <button
       id={id}
       name={name}
       type={type}
-      variant={variant}
-      color={color}
+      disabled={disabled}
       onClick={handleClick}
+      className={`inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3.5 text-[13px] font-medium transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${colorClasses} ${className}`}
       {...props}
     >
       {label}
-    </StyledButton>
+    </button>
   );
 };
 

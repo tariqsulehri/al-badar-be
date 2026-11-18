@@ -81,6 +81,10 @@ const routeObjects = [
     component: CreateSlide,
   },
   {
+    path: "/slides/edit/:id",
+    component: CreateSlide,
+  },
+  {
     path: "/slides/list", 
     component: SlideList,
   },

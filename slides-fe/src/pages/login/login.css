@@ -46,8 +46,8 @@
 .login-page__highlight {
   padding: 18px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.52);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
   box-shadow: var(--shadow-soft);
 }
 

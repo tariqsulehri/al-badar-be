@@ -9,8 +9,8 @@ import "./login.css";
 const LoginForm = (props) => {
   const { loading = false } = props;
   const initialValues = {
-    username: "admin",
-    password: "admin",
+    username: "",
+    password: "",
   };
 
   const onForgotPassword = (values, setFieldTouched) => {
@@ -55,7 +55,8 @@ const LoginForm = (props) => {
                 name="username"
                 id="username"
                 disabled={loading}
-                placeholder="admin"
+                placeholder="Username or email"
+                autoComplete="username"
                 labelClassName="labelfield"
                 label="Username"
                 {...inputProps}
@@ -68,7 +69,7 @@ const LoginForm = (props) => {
                 id="password"
                 type="password"
                 disabled={loading}
-                placeholder="admin"
+                autoComplete="current-password"
                 labelClassName="labelfield"
                 label="Password"
                 {...inputProps}
@@ -99,6 +100,7 @@ const LoginForm = (props) => {
 LoginForm.propTypes = {
   onForgotPassword: PropTypes.func,
   onSubmit: PropTypes.func,
+  loading: PropTypes.bool,
 };
 
 export default LoginForm;
