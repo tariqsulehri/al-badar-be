@@ -51,15 +51,18 @@ async function fetchImageAsDataUri(url) {
 }
 
 /**
- * Derives location title from MongoDB slide record fields.
+ * Derives location title from MongoDB slide record fields or CustomerPlan fields.
  */
 function getLocationHeader(slide) {
+  if (slide.location && typeof slide.location === "string" && slide.location.trim()) {
+    return slide.location.trim();
+  }
   const area = (slide.area || "").trim();
   const subArea = (slide.subArea || "").trim();
   const locFrom = (slide.location_from || "").trim();
 
   if (area && subArea && area.toLowerCase() !== subArea.toLowerCase()) {
-    return `${area} ${subArea}`;
+    return `${area}\n${subArea}`;
   }
   return locFrom || area || subArea || "";
 }
@@ -82,7 +85,7 @@ const pptxHelper = {
       return;
     }
 
-    // Set 16:9 widescreen presentation layout
+    // Set 16:9 widescreen presentation layout (10.0 x 5.625 in)
     pptx.layout = "LAYOUT_16x9";
     pptx.title = "Al-Badar Media Solutions - Inventory Presentation";
     pptx.author = "Al-Badar Media Solutions";
@@ -92,40 +95,53 @@ const pptxHelper = {
       ? AL_BADAR_LOGO_BASE64
       : `data:${AL_BADAR_LOGO_BASE64}`;
 
+    // Colors matching reference template
+    const COLOR_HEADER_FILL = "ADCDE6"; // Light sky-blue for City and Table labels
+    const COLOR_PRIMARY_NAVY = "0A3370"; // Dark blue text for headers, labels, values
+    const COLOR_FOOTER_NAVY = "084B8A"; // Vibrant dark blue for the bottom status bar
+
     for (const slideData of records) {
       const slide = pptx.addSlide();
 
       // Clean white background
       slide.background = { color: "FFFFFF" };
 
-      // 1. City Header (e.g. Multan, Islamabad)
+      // 1. City Header Box (e.g. Multan, Islamabad) with light blue fill
       const cityText = (slideData.city || "").trim();
+      slide.addShape(pptx.shapes.RECTANGLE, {
+        x: 0.15,
+        y: 0.18,
+        w: 2.45,
+        h: 0.65,
+        fill: { color: COLOR_HEADER_FILL },
+        line: { color: "9BBFD8", width: 1 },
+      });
       slide.addText(cityText, {
         x: 0.15,
-        y: 0.35,
+        y: 0.18,
         w: 2.45,
-        h: 0.50,
+        h: 0.65,
         align: "center",
         valign: "middle",
         fontFace: "Georgia",
-        fontSize: 24,
+        fontSize: 22,
         bold: true,
-        color: "0A3370",
+        color: COLOR_PRIMARY_NAVY,
       });
 
       // 2. Location / Area Header
       const locationText = getLocationHeader(slideData);
       slide.addText(locationText, {
         x: 0.15,
-        y: 0.95,
+        y: 0.88,
         w: 2.45,
         h: 0.70,
         align: "center",
         valign: "middle",
         fontFace: "Georgia",
-        fontSize: 14,
+        fontSize: 13.5,
         bold: true,
-        color: "0A3370",
+        color: COLOR_PRIMARY_NAVY,
       });
 
       // 3. Traffic Facing Subtitle
@@ -133,148 +149,107 @@ const pptxHelper = {
       if (facingText) {
         slide.addText(facingText, {
           x: 0.15,
-          y: 1.70,
+          y: 1.58,
           w: 2.45,
-          h: 0.45,
+          h: 0.40,
           align: "center",
           valign: "middle",
           fontFace: "Georgia",
           fontSize: 9,
-          color: "0A3370",
+          color: COLOR_PRIMARY_NAVY,
         });
       }
 
-      // 4. Details Table (Clean & borderless matching reference format)
+      // 4. Details Table (4 rows: Code, Size, Per Month Rent, Status)
       const codeVal = slideData.code || "";
       const widthVal = slideData.width_feets ?? 0;
       const heightVal = slideData.height_feets ?? 0;
-      const sizeVal = `${widthVal} x ${heightVal}`;
-      const priceVal = slideData.finalPrice ?? slideData.quotedPrice;
+      const sizeVal =
+        widthVal && heightVal
+          ? `${widthVal} x ${heightVal}`
+          : slideData.dimension || "-";
+
+      const priceVal =
+        slideData.quoting_monthly_rent ??
+        slideData.finalPrice ??
+        slideData.quotedPrice ??
+        slideData.discounted_monthly_rent;
       const rentFormatted =
-        priceVal !== undefined && priceVal !== null && priceVal !== ""
+        priceVal !== undefined && priceVal !== null && priceVal !== "" && !isNaN(Number(priceVal))
           ? Number(priceVal).toLocaleString("en-US")
-          : "N/A";
-      const statusVal = slideData.status || "";
+          : (priceVal || "N/A");
+
+      const statusVal = slideData.status || "Available";
+
+      const labelCellOpts = {
+        fontFace: "Georgia",
+        fontSize: 10.5,
+        bold: true,
+        color: COLOR_PRIMARY_NAVY,
+        align: "center",
+        valign: "middle",
+        fill: { color: COLOR_HEADER_FILL },
+        border: [
+          { pt: 1, color: "FFFFFF" },
+          { pt: 1, color: "FFFFFF" },
+          { pt: 1, color: "FFFFFF" },
+          { pt: 1, color: "FFFFFF" },
+        ],
+      };
+
+      const valueCellOpts = {
+        fontFace: "Georgia",
+        fontSize: 10.5,
+        bold: true,
+        color: COLOR_PRIMARY_NAVY,
+        align: "center",
+        valign: "middle",
+        fill: { color: "FFFFFF" },
+        border: [
+          { pt: 1, color: COLOR_HEADER_FILL },
+          { pt: 1, color: COLOR_HEADER_FILL },
+          { pt: 1, color: COLOR_HEADER_FILL },
+          { pt: 1, color: COLOR_HEADER_FILL },
+        ],
+      };
 
       const tableRows = [
         [
-          {
-            text: "Code",
-            options: {
-              fontFace: "Georgia",
-              fontSize: 10.5,
-              color: "0A3370",
-              align: "left",
-              valign: "middle",
-            },
-          },
-          {
-            text: codeVal,
-            options: {
-              fontFace: "Georgia",
-              fontSize: 10.5,
-              color: "0A3370",
-              align: "right",
-              valign: "middle",
-            },
-          },
+          { text: "Code", options: labelCellOpts },
+          { text: codeVal, options: valueCellOpts },
         ],
         [
-          {
-            text: "Size",
-            options: {
-              fontFace: "Georgia",
-              fontSize: 10.5,
-              color: "0A3370",
-              align: "left",
-              valign: "middle",
-            },
-          },
-          {
-            text: sizeVal,
-            options: {
-              fontFace: "Georgia",
-              fontSize: 10.5,
-              color: "0A3370",
-              align: "right",
-              valign: "middle",
-            },
-          },
+          { text: "Size", options: labelCellOpts },
+          { text: sizeVal, options: valueCellOpts },
         ],
         [
-          {
-            text: "Per Month\nRent",
-            options: {
-              fontFace: "Georgia",
-              fontSize: 10.5,
-              color: "0A3370",
-              align: "left",
-              valign: "middle",
-            },
-          },
-          {
-            text: rentFormatted,
-            options: {
-              fontFace: "Georgia",
-              fontSize: 10.5,
-              color: "0A3370",
-              align: "right",
-              valign: "middle",
-            },
-          },
+          { text: "Per Month\nRent", options: labelCellOpts },
+          { text: rentFormatted, options: valueCellOpts },
         ],
         [
-          {
-            text: "Status",
-            options: {
-              fontFace: "Georgia",
-              fontSize: 10.5,
-              color: "0A3370",
-              align: "left",
-              valign: "middle",
-            },
-          },
-          {
-            text: statusVal,
-            options: {
-              fontFace: "Georgia",
-              fontSize: 10.5,
-              color: "0A3370",
-              align: "right",
-              valign: "middle",
-            },
-          },
+          { text: "Status", options: labelCellOpts },
+          { text: statusVal, options: valueCellOpts },
         ],
       ];
 
       slide.addTable(tableRows, {
-        x: 0.20,
-        y: 2.25,
-        w: 2.40,
-        rowH: [0.45, 0.45, 0.55, 0.45],
-        border: { type: "none" },
-        colW: [1.20, 1.20],
+        x: 0.15,
+        y: 2.02,
+        w: 2.45,
+        colW: [1.22, 1.23],
+        rowH: [0.46, 0.46, 0.54, 0.46],
       });
 
       // 5. Static Al-Badar Media Solutions Logo (same on every slide)
       slide.addImage({
         data: logoDataUri,
-        x: 0.60,
-        y: 4.35,
-        w: 1.55,
+        x: 0.58,
+        y: 4.08,
+        w: 1.58,
         h: 0.95,
       });
 
-      // 6. Thin bottom horizontal navy accent line
-      slide.addShape(pptx.shapes.LINE, {
-        x: 0.0,
-        y: 5.48,
-        w: 10.0,
-        h: 0,
-        line: { color: "1A539B", width: 2 },
-      });
-
-      // 7. Right Panel: Dynamic billboard photo from MongoDB
+      // 6. Right Panel: Dynamic billboard photo from MongoDB
       const rawImageUrl = slideData.image;
       const normalizedImageUrl = normalizeImageUrl(rawImageUrl);
 
@@ -285,10 +260,10 @@ const pptxHelper = {
           if (imgBase64) {
             slide.addImage({
               data: imgBase64,
-              x: 2.70,
-              y: 0.08,
-              w: 7.25,
-              h: 5.35,
+              x: 2.72,
+              y: 0.18,
+              w: 7.10,
+              h: 4.88,
             });
             imageEmbedded = true;
           }
@@ -300,17 +275,17 @@ const pptxHelper = {
       // Fallback placeholder if image is missing or cannot be loaded
       if (!imageEmbedded) {
         slide.addShape(pptx.shapes.RECTANGLE, {
-          x: 2.70,
-          y: 0.08,
-          w: 7.25,
-          h: 5.35,
+          x: 2.72,
+          y: 0.18,
+          w: 7.10,
+          h: 4.88,
           fill: { color: "F8FAFC" },
           line: { color: "CBD5E1", width: 1, dashType: "dash" },
         });
         slide.addText("Image Not Available", {
-          x: 2.70,
-          y: 2.45,
-          w: 7.25,
+          x: 2.72,
+          y: 2.37,
+          w: 7.10,
           h: 0.50,
           align: "center",
           valign: "middle",
@@ -319,8 +294,50 @@ const pptxHelper = {
           color: "94A3B8",
         });
       }
+
+      // 7. Full-width static status bar at the bottom
+      slide.addShape(pptx.shapes.RECTANGLE, {
+        x: 0.0,
+        y: 5.22,
+        w: 10.0,
+        h: 0.405,
+        fill: { color: COLOR_FOOTER_NAVY },
+        line: { color: COLOR_FOOTER_NAVY },
+      });
+
+      // Static status bar text: Muhammad Faisal | Cell # 0333-4732769 | E-mail: faisal.albadarmediasoluions@gmail.com
+      const footerCellOpts = (align) => ({
+        fontFace: "Arial",
+        fontSize: 10,
+        bold: true,
+        color: "FFFFFF",
+        align,
+        valign: "middle",
+      });
+
+      slide.addTable(
+        [
+          [
+            { text: "Muhammad Faisal", options: footerCellOpts("left") },
+            { text: "Cell # 0333-4732769", options: footerCellOpts("center") },
+            {
+              text: "E-mail: faisal.albadarmediasoluions@gmail.com",
+              options: footerCellOpts("right"),
+            },
+          ],
+        ],
+        {
+          x: 0.25,
+          y: 5.22,
+          w: 9.50,
+          h: 0.405,
+          colW: [2.8, 3.4, 3.3],
+          border: { type: "none" },
+        }
+      );
     }
   },
 };
 
 export default pptxHelper;
+
