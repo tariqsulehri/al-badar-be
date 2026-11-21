@@ -3,7 +3,15 @@ import { showToastNotification } from "../../helpers/notificationsHepler";
 
 const EXPORT_PAGE_SIZE = 5000;
 
-export const getAllSlides = async (limit = 10, page = 1, searchBy = "code", searchText = "", filters = {}) => {
+export const getAllSlides = async (
+  limit = 10,
+  page = 1,
+  searchBy = "code",
+  searchText = "",
+  filters = {},
+  sortBy = "code",
+  sortOrder = "asc"
+) => {
   const response = await httpClient.get("/slides/list", {
     params: {
       pageSize: limit,
@@ -11,6 +19,8 @@ export const getAllSlides = async (limit = 10, page = 1, searchBy = "code", sear
       searchBy,
       searchText,
       filters: JSON.stringify(filters || {}),
+      sortBy,
+      sortOrder,
     },
   });
   const result = unwrap(response);
@@ -18,14 +28,22 @@ export const getAllSlides = async (limit = 10, page = 1, searchBy = "code", sear
 };
 
 /** Fetches every slide matching the search (used for PPTX export / bulk selection). */
-export const getSlidesBySearch = async (searchBy = "code", searchText = "", totalRecords = 0, filters = {}) => {
-  const recordCount = totalRecords || (await getAllSlides(1, 1, searchBy, searchText, filters)).totalRecords;
+export const getSlidesBySearch = async (
+  searchBy = "code",
+  searchText = "",
+  totalRecords = 0,
+  filters = {},
+  sortBy = "code",
+  sortOrder = "asc"
+) => {
+  const recordCount =
+    totalRecords || (await getAllSlides(1, 1, searchBy, searchText, filters, sortBy, sortOrder)).totalRecords;
   if (!recordCount) return [];
 
   const totalPages = Math.ceil(recordCount / EXPORT_PAGE_SIZE);
   const pages = await Promise.all(
     Array.from({ length: totalPages }, (_, index) =>
-      getAllSlides(EXPORT_PAGE_SIZE, index + 1, searchBy, searchText, filters)
+      getAllSlides(EXPORT_PAGE_SIZE, index + 1, searchBy, searchText, filters, sortBy, sortOrder)
     )
   );
   return pages.flatMap((pageResult) => pageResult.data);

@@ -74,6 +74,21 @@ describe("slides CRUD", () => {
     expect(all.body.result.data).toHaveLength(1);
   });
 
+  it("defaults to sorting by code ascending, and supports custom sortBy and sortOrder", async () => {
+    const defaultRes = await request(app).get("/api/slides/list").set(auth);
+    expect(defaultRes.status).toBe(200);
+    const codes = defaultRes.body.result.data.map((s) => s.code);
+    expect(codes).toEqual(["LHR-001", "LHR-002"]);
+
+    const descRes = await request(app)
+      .get("/api/slides/list")
+      .query({ sortBy: "code", sortOrder: "desc" })
+      .set(auth);
+    expect(descRes.status).toBe(200);
+    const descCodes = descRes.body.result.data.map((s) => s.code);
+    expect(descCodes).toEqual(["LHR-002", "LHR-001"]);
+  });
+
   it("returns 400 for a malformed id and 404 for an unknown one", async () => {
     expect((await request(app).get("/api/slides/find/not-an-id").set(auth)).status).toBe(400);
     expect((await request(app).get("/api/slides/find/64b000000000000000000099").set(auth)).status).toBe(404);

@@ -38,6 +38,8 @@ const SlideList = () => {
   const [searchBy,    setSearchBy]    = useState("code");
   const [searchText,  setSearchText]  = useState("");
   const [filters,     setFilters]     = useState(emptyFilters);
+  const [sortBy,      setSortBy]      = useState("code");
+  const [sortOrder,   setSortOrder]   = useState("asc");
   const [filterOptions, setFilterOptions] = useState({
     cities: [],
     areas: [],
@@ -62,10 +64,20 @@ const SlideList = () => {
     nextSearchBy    = searchBy,
     nextSearchText  = searchText,
     nextFilters     = filters,
+    nextSortBy      = sortBy,
+    nextSortOrder   = sortOrder,
   ) => {
     setLoading(true);
     try {
-      const response = await getAllSlides(nextRowsPerPage, nextPage + 1, nextSearchBy, nextSearchText, nextFilters);
+      const response = await getAllSlides(
+        nextRowsPerPage,
+        nextPage + 1,
+        nextSearchBy,
+        nextSearchText,
+        nextFilters,
+        nextSortBy,
+        nextSortOrder
+      );
       setSlides(response?.data || []);
       setTotalRows(response?.totalRecords || 0);
     } catch {
@@ -79,7 +91,7 @@ const SlideList = () => {
 
   useEffect(() => {
     fetchSlides();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch only on paging; search calls fetchSlides itself
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch only on paging; search/sort calls fetchSlides itself
   }, [page, rowsPerPage]);
 
   useEffect(() => {
@@ -113,7 +125,14 @@ const SlideList = () => {
     setFilters(nextFilters);
     // On another page, resetting to page 0 triggers the page effect (which sees the
     // new search state); only fetch directly when already on page 0, to avoid a double request.
-    if (page === 0) fetchSlides(0, rowsPerPage, nextSearchBy, nextSearchText, nextFilters);
+    if (page === 0) fetchSlides(0, rowsPerPage, nextSearchBy, nextSearchText, nextFilters, sortBy, sortOrder);
+    else setPage(0);
+  };
+
+  const handleSortChange = (nextSortBy, nextSortOrder) => {
+    setSortBy(nextSortBy);
+    setSortOrder(nextSortOrder);
+    if (page === 0) fetchSlides(0, rowsPerPage, searchBy, searchText, filters, nextSortBy, nextSortOrder);
     else setPage(0);
   };
 
@@ -123,7 +142,7 @@ const SlideList = () => {
   };
 
   const getActiveSearchSlides = async () => {
-    const matchedSlides = await getSlidesBySearch(searchBy, searchText, totalRows, filters);
+    const matchedSlides = await getSlidesBySearch(searchBy, searchText, totalRows, filters, sortBy, sortOrder);
     return matchedSlides.filter(Boolean);
   };
 
@@ -284,7 +303,13 @@ const SlideList = () => {
           </div>
       </PageHeader>
 
-      <SearchBar onSearch={handleSearch} filterOptions={filterOptions} />
+      <SearchBar
+        onSearch={handleSearch}
+        filterOptions={filterOptions}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
+      />
 
       <SlidesDataTable
         data={slides}
@@ -292,6 +317,9 @@ const SlideList = () => {
         page={page}
         rowsPerPage={rowsPerPage}
         loading={loading}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
         onPageChange={setPage}
         onRowsPerPageChange={(value) => { setRowsPerPage(value); setPage(0); }}
       />

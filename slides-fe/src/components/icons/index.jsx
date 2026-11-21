@@ -112,3 +112,19 @@ export const PlanIcon = createIcon(
   "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z",
   "PlanIcon"
 );
+
+export const SortIcon = createIcon(
+  "M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z",
+  "SortIcon"
+);
+
+export const ArrowUpwardIcon = createIcon(
+  "M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z",
+  "ArrowUpwardIcon"
+);
+
+export const ArrowDownwardIcon = createIcon(
+  "M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z",
+  "ArrowDownwardIcon"
+);
+

@@ -26,13 +26,15 @@ exports.uploadImage = async (req, res) => {
 exports.create = async (req, res) => created(res, await slideService.createSlide(readPayload(req.body)));
 
 exports.list = async (req, res) => {
-  const { pageNo, pageSize, searchBy, searchText, filters } = req.query;
+  const { pageNo, pageSize, searchBy, searchText, filters, sortBy, sortOrder } = req.query;
   const result = await slideService.getSlides({
     pageNo,
     pageSize,
     searchBy,
     searchText,
     filters: parseFilters(filters),
+    sortBy,
+    sortOrder,
   });
   return ok(res, result);
 };

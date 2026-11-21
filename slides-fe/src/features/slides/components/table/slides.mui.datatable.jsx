@@ -24,6 +24,9 @@ const SlidesDataTable = ({
   page = 0,
   rowsPerPage = 10,
   loading = false,
+  sortBy = "code",
+  sortOrder = "asc",
+  onSortChange,
   onPageChange,
   onRowsPerPageChange,
 }) => {
@@ -32,6 +35,15 @@ const SlidesDataTable = ({
   const selectedSlideIds = useSelector((state) => state.slidesForPptx.selectedSlideIds) || NO_SELECTION;
   const totalPages = Math.max(Math.ceil((totalRows || 0) / (rowsPerPage || 10)), 1);
   const [pageInput, setPageInput] = useState(String((page || 0) + 1));
+
+  const handleHeaderSort = (field) => {
+    if (!onSortChange) return;
+    if (sortBy === field) {
+      onSortChange(field, sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      onSortChange(field, "asc");
+    }
+  };
 
   useEffect(() => {
     setPageInput(String((page || 0) + 1));
@@ -103,12 +115,77 @@ const SlidesDataTable = ({
                 className="h-4 w-4 cursor-pointer accent-[var(--brand)]"
               />
             </th>
-            <th>Slide</th>
-            <th className="hidden w-[20%] xl:table-cell">Supplier</th>
-            <th className="hidden w-[120px] xl:table-cell">Type</th>
+            <th
+              className="cursor-pointer select-none hover:text-text-primary transition-colors"
+              onClick={() => handleHeaderSort("code")}
+              title="Sort by slide code"
+            >
+              <div className="flex items-center gap-1.5">
+                <span>Slide</span>
+                {sortBy === "code" && (
+                  <span className="text-brand text-xs font-bold">
+                    {sortOrder === "asc" ? "▲" : "▼"}
+                  </span>
+                )}
+              </div>
+            </th>
+            <th
+              className="hidden w-[20%] xl:table-cell cursor-pointer select-none hover:text-text-primary transition-colors"
+              onClick={() => handleHeaderSort("supplier")}
+              title="Sort by supplier"
+            >
+              <div className="flex items-center gap-1.5">
+                <span>Supplier</span>
+                {sortBy === "supplier" && (
+                  <span className="text-brand text-xs font-bold">
+                    {sortOrder === "asc" ? "▲" : "▼"}
+                  </span>
+                )}
+              </div>
+            </th>
+            <th
+              className="hidden w-[120px] xl:table-cell cursor-pointer select-none hover:text-text-primary transition-colors"
+              onClick={() => handleHeaderSort("mediaType")}
+              title="Sort by media type"
+            >
+              <div className="flex items-center gap-1.5">
+                <span>Type</span>
+                {sortBy === "mediaType" && (
+                  <span className="text-brand text-xs font-bold">
+                    {sortOrder === "asc" ? "▲" : "▼"}
+                  </span>
+                )}
+              </div>
+            </th>
             <th className="hidden w-[110px] lg:table-cell">Size (ft)</th>
-            <th className="w-[130px] text-right">Final price</th>
-            <th className="hidden w-[124px] sm:table-cell">Status</th>
+            <th
+              className="w-[130px] text-right cursor-pointer select-none hover:text-text-primary transition-colors"
+              onClick={() => handleHeaderSort("finalPrice")}
+              title="Sort by final price"
+            >
+              <div className="flex items-center justify-end gap-1.5">
+                <span>Final price</span>
+                {sortBy === "finalPrice" && (
+                  <span className="text-brand text-xs font-bold">
+                    {sortOrder === "asc" ? "▲" : "▼"}
+                  </span>
+                )}
+              </div>
+            </th>
+            <th
+              className="hidden w-[124px] sm:table-cell cursor-pointer select-none hover:text-text-primary transition-colors"
+              onClick={() => handleHeaderSort("status")}
+              title="Sort by status"
+            >
+              <div className="flex items-center gap-1.5">
+                <span>Status</span>
+                {sortBy === "status" && (
+                  <span className="text-brand text-xs font-bold">
+                    {sortOrder === "asc" ? "▲" : "▼"}
+                  </span>
+                )}
+              </div>
+            </th>
             <th className="w-10"><span className="sr-only">Details</span></th>
           </tr>
         </thead>
@@ -255,6 +332,9 @@ SlidesDataTable.propTypes = {
   page: PropTypes.number,
   rowsPerPage: PropTypes.number,
   loading: PropTypes.bool,
+  sortBy: PropTypes.string,
+  sortOrder: PropTypes.string,
+  onSortChange: PropTypes.func,
   onPageChange: PropTypes.func,
   onRowsPerPageChange: PropTypes.func,
 };

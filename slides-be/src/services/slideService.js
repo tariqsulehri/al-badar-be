@@ -30,6 +30,36 @@ const SEARCHABLE_NUMBER_FIELDS = [
 
 const ADVANCED_FILTER_FIELDS = ["city", "area", "subArea", "supplier", "category"];
 
+const ALLOWED_SORT_FIELDS = {
+  code: "code",
+  city: "city",
+  area: "area",
+  subArea: "subArea",
+  supplier: "supplier",
+  category: "category",
+  mediaType: "mediaType",
+  dimension: "dimension",
+  lights: "lights",
+  status: "status",
+  finalPrice: "finalPrice",
+  quotedPrice: "quotedPrice",
+  discountedPrice: "discountedPrice",
+  supQuotedPrice: "supQuotedPrice",
+  supDiscountedPrice: "supDiscountedPrice",
+  supFinalPrice: "supFinalPrice",
+  height_feets: "height_feets",
+  width_feets: "width_feets",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+};
+
+const resolveSort = (sortBy = "code", sortOrder = "asc") => {
+  const field = ALLOWED_SORT_FIELDS[sortBy] || "code";
+  const orderStr = String(sortOrder || "").toLowerCase();
+  const direction = orderStr === "desc" || orderStr === "-1" ? -1 : 1;
+  return { [field]: direction };
+};
+
 // The selected-slides / PPTX export screen pulls large pages; everything else should stay small.
 const MAX_PAGE_SIZE = 5000;
 
@@ -75,14 +105,24 @@ const buildSlidesQuery = ({ searchBy, searchText, filters }) => {
   return { $and: queries };
 };
 
-const getSlides = async ({ pageNo = 1, pageSize = 10, searchBy = "code", searchText = "", filters = {} } = {}) => {
+const getSlides = async ({
+  pageNo = 1,
+  pageSize = 10,
+  searchBy = "code",
+  searchText = "",
+  filters = {},
+  sortBy = "code",
+  sortOrder = "asc",
+} = {}) => {
   const normalizedPageNo = Math.max(Number(pageNo) || 1, 1);
   const normalizedPageSize = Math.min(Math.max(Number(pageSize) || 10, 1), MAX_PAGE_SIZE);
   const query = buildSlidesQuery({ searchBy, searchText, filters });
+  const sort = resolveSort(sortBy, sortOrder);
 
   const [data, totalRecords] = await Promise.all([
     Slide.find(query)
-      .sort({ createdAt: -1 })
+      .collation({ locale: "en", numericOrdering: true })
+      .sort(sort)
       .skip((normalizedPageNo - 1) * normalizedPageSize)
       .limit(normalizedPageSize),
     Slide.countDocuments(query),

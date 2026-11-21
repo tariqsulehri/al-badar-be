@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { SearchIcon, RefreshIcon } from "../icons";
+import { SearchIcon, RefreshIcon, SortIcon, ArrowUpwardIcon, ArrowDownwardIcon } from "../icons";
 import "./search.bar.css";
 
 const SEARCH_FIELDS = [
@@ -18,6 +18,20 @@ const SEARCH_FIELDS = [
   { value: "category", label: "Category" },
   { value: "finalPrice", label: "Final Price" },
   { value: "supQuotedPrice", label: "Supplier Quote" },
+];
+
+const SORT_FIELDS = [
+  { value: "code", label: "Code" },
+  { value: "finalPrice", label: "Final Price" },
+  { value: "quotedPrice", label: "Customer Quoted" },
+  { value: "city", label: "City" },
+  { value: "area", label: "Area" },
+  { value: "subArea", label: "Sub Area" },
+  { value: "supplier", label: "Supplier" },
+  { value: "category", label: "Category" },
+  { value: "mediaType", label: "Media Type" },
+  { value: "status", label: "Status" },
+  { value: "createdAt", label: "Created Date" },
 ];
 
 const emptyFilters = {
@@ -39,7 +53,13 @@ const normalizeOptions = (options = []) =>
     })
     .filter(Boolean);
 
-const SearchBar = ({ onSearch, filterOptions = {} }) => {
+const SearchBar = ({
+  onSearch,
+  filterOptions = {},
+  sortBy = "code",
+  sortOrder = "asc",
+  onSortChange,
+}) => {
   const [searchBy, setSearchBy] = useState("code");
   const [searchText, setSearchText] = useState("");
   const [filters, setFilters] = useState(emptyFilters);
@@ -53,6 +73,7 @@ const SearchBar = ({ onSearch, filterOptions = {} }) => {
     setSearchText("");
     setFilters(emptyFilters);
     onSearch("code", "", emptyFilters);
+    if (onSortChange) onSortChange("code", "asc");
   };
 
   const handleFilterChange = (field, value) => {
@@ -88,7 +109,7 @@ const SearchBar = ({ onSearch, filterOptions = {} }) => {
           ))}
         </select>
 
-        <div className="flex-1 min-w-[220px]">
+        <div className="flex-1 min-w-[200px]">
           <input
             type="text"
             value={searchText}
@@ -118,6 +139,45 @@ const SearchBar = ({ onSearch, filterOptions = {} }) => {
           <RefreshIcon fontSize="small" />
           <span>Reset</span>
         </button>
+
+        <div className="flex items-center gap-1.5 ml-auto pl-2 border-l border-border-soft/60">
+          <SortIcon fontSize="small" className="text-text-muted" />
+          <span className="text-xs font-semibold text-text-muted uppercase tracking-wider hidden sm:inline">
+            Sort
+          </span>
+          <select
+            value={sortBy}
+            onChange={(e) => onSortChange?.(e.target.value, sortOrder)}
+            aria-label="Sort by field"
+            className="h-9 px-2.5 rounded-lg border border-border-soft bg-bg-surface-strong text-text-primary text-[13px] font-medium outline-none focus:border-brand cursor-pointer"
+          >
+            {SORT_FIELDS.map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            onClick={() => onSortChange?.(sortBy, sortOrder === "asc" ? "desc" : "asc")}
+            className="ui-btn h-9 px-2.5 text-xs font-medium flex items-center gap-1"
+            title={`Toggle sort order (Current: ${sortOrder === "asc" ? "Ascending" : "Descending"})`}
+            aria-label={`Sort order: ${sortOrder === "asc" ? "Ascending" : "Descending"}`}
+          >
+            {sortOrder === "asc" ? (
+              <>
+                <ArrowUpwardIcon fontSize="small" />
+                <span className="hidden md:inline">Asc</span>
+              </>
+            ) : (
+              <>
+                <ArrowDownwardIcon fontSize="small" />
+                <span className="hidden md:inline">Desc</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 pt-2 border-t border-border-soft/60">
@@ -148,6 +208,10 @@ const SearchBar = ({ onSearch, filterOptions = {} }) => {
 SearchBar.propTypes = {
   onSearch: PropTypes.func.isRequired,
   filterOptions: PropTypes.object,
+  sortBy: PropTypes.string,
+  sortOrder: PropTypes.string,
+  onSortChange: PropTypes.func,
 };
 
 export default SearchBar;
+
