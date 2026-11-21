@@ -22,7 +22,7 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       # Persistent host storage for uploaded slide images
-      - ./uploads:/app/public/uploads/slides/images:rw
+      - /uploads/prod/images/slides:/app/public/uploads/slides/images:rw
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3500/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 15s

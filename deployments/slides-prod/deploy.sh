@@ -37,8 +37,8 @@ check_prerequisites() {
     fi
   fi
 
-  mkdir -p ./uploads
-  chmod -R 775 ./uploads 2>/dev/null || true
+  mkdir -p /uploads/prod/images/slides
+  chmod -R 775 /uploads/prod/images/slides 2>/dev/null || true
 }
 
 check_host_mongodb() {
