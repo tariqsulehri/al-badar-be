@@ -22,6 +22,8 @@ const ListSubarea =  lazy(()=> import ("../features/config/subarea/list.subarea"
 const CreateSlide  = lazy(()=> import("../features/slides/create.slides"));
 const SlideList =  lazy(()=> import("../features/slides/slides.list"));
 const SelectedSlideList =  lazy(()=> import("../features/slides/selected.slides.list"));
+const CustomerPlanList = lazy(() => import("../features/customerPlan/CustomerPlanList"));
+const CustomerPlanEditor = lazy(() => import("../features/customerPlan/CustomerPlanEditor"));
 
 const routeObjects = [
   {
@@ -91,8 +93,19 @@ const routeObjects = [
   {
     path: "/slides/selected_slides", 
     component: SelectedSlideList,
+  },
+  {
+    path: "/customer-plans/list",
+    component: CustomerPlanList,
+  },
+  {
+    path: "/customer-plans/create",
+    component: CustomerPlanEditor,
+  },
+  {
+    path: "/customer-plans/edit/:id",
+    component: CustomerPlanEditor,
   }
-  
 ];
 
 export default routeObjects;

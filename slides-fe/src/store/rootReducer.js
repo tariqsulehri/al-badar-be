@@ -6,6 +6,7 @@ import citySlice from "../features/config/city/slice/citySlice";
 import provSlice from "../features/config/provience/slice/provSlice";
 import slidesForPptxSlice from "../features/slides/slice/slidesForPptxSlice";
 import partySlice from "../features/party/slice/partySlice";
+import customerPlanSlice from "../features/customerPlan/slice/customerPlanSlice";
 
 export default combineReducers({
     auth :  authSlice,
@@ -14,5 +15,6 @@ export default combineReducers({
     city :  citySlice,
     prov :  provSlice,
     party : partySlice,
-    slidesForPptx : slidesForPptxSlice,  // Add your other slices here...
+    slidesForPptx : slidesForPptxSlice,
+    customerPlan : customerPlanSlice,
 });

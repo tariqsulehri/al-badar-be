@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import CustomButton from "../../components/form-controls/buttons/customButton";
 import DataTableComponent from "./components/table/selected.slides.datatable";
 import { clearSlides } from "./slice/slidesForPptxSlice";
+import { setDraftSlides } from "../customerPlan/slice/customerPlanSlice";
 import pptxHelper from "./components/helpers/pptxHelper";
 import PptxGenJS from "pptxgenjs";
 import { showToastNotification } from "../../helpers/notificationsHepler";
@@ -71,15 +72,33 @@ const SelectedSlideList = () => {
     showToastNotification("success", "Selected slides reset");
   };
 
+  const handleMoveToCustomerPlan = () => {
+    if (!hasSlides) {
+      showToastNotification("warning", "No slides selected to move");
+      return;
+    }
+    dispatch(setDraftSlides(slides));
+    showToastNotification("success", `Moved ${slides.length} slide(s) to Customer Plan`);
+    navigate("/customer-plans/create");
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <CustomButton
+          id="moveToPlan"
+          name="moveToPlan"
+          label="Move to Customer Plan"
+          handleClick={handleMoveToCustomerPlan}
+          disabled={!hasSlides}
+        />
         <CustomButton
           id="createPptx"
           name="createPptx"
           label="Generate PPTX"
           handleClick={handleCreatePptx}
           disabled={!hasSlides}
+          variant="outlined"
         />
         <CustomButton
           id="backToList"

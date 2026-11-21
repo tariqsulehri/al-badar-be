@@ -5,6 +5,7 @@ import {
   SetupIcon,
   UsersIcon,
   LockIcon,
+  PlanIcon,
 } from "../icons";
 
 const BACK_OFFICE = ["admin", "manager"];
@@ -32,6 +33,16 @@ export const NAV_ITEMS = [
       { label: "All slides", to: "/slides/list", match: ["/slides/list", "/slides/edit"] },
       { label: "Create slide", to: "/slides/create" },
       { label: "Selected for PPTX", to: "/slides/selected_slides" },
+    ],
+  },
+  {
+    key: "customerPlans",
+    label: "Customer Plans",
+    icon: PlanIcon,
+    roles: BACK_OFFICE,
+    children: [
+      { label: "All media plans", to: "/customer-plans/list", match: ["/customer-plans/list", "/customer-plans/edit"] },
+      { label: "Create media plan", to: "/customer-plans/create" },
     ],
   },
   {

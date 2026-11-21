@@ -1,0 +1,129 @@
+/* Customer Plan Table Styles - Matching ABMS Media Plan Format */
+
+.plan-table-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #1e293b;
+  background-color: var(--bg-surface, #ffffff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.plan-banner-header {
+  background: linear-gradient(180deg, #0077c8 0%, #0066b2 100%);
+  color: #ffffff;
+  text-align: center;
+  padding: 12px 16px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
+}
+
+.plan-grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: 0.8125rem;
+}
+
+.plan-grid-table th {
+  background-color: #8eb4e3;
+  color: #0f172a;
+  font-weight: 700;
+  text-align: center;
+  padding: 10px 8px;
+  border: 1px solid #64748b;
+  white-space: pre-line;
+  line-height: 1.25;
+}
+
+.plan-grid-table td {
+  padding: 6px 8px;
+  border: 1px solid #94a3b8;
+  vertical-align: middle;
+  background-color: var(--bg-surface, #ffffff);
+}
+
+.plan-grid-table tbody tr:hover td {
+  background-color: rgba(14, 118, 110, 0.03);
+}
+
+.plan-table-input {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 0.8125rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background-color: transparent;
+  color: var(--text-primary, #0f1e36);
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.plan-table-input:hover {
+  border-color: #cbd5e1;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.plan-table-input:focus {
+  border-color: var(--brand, #0f766e);
+  background-color: var(--bg-surface-strong, #ffffff);
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+}
+
+.plan-table-input.num-right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.plan-table-select {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background-color: var(--bg-surface, #ffffff);
+  color: var(--text-primary, #0f1e36);
+  outline: none;
+  cursor: pointer;
+}
+
+.plan-totals-row td {
+  background-color: #f1f5f9;
+  font-weight: 700;
+  border-top: 2px solid #475569;
+  border-bottom: 3px double #334155;
+  color: var(--text-primary, #0f1e36);
+}
+
+.ppt-requirements-card {
+  border: 1px solid #475569;
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 420px;
+  background-color: var(--bg-surface, #ffffff);
+}
+
+.ppt-requirements-header {
+  background-color: #f1f5f9;
+  font-weight: 700;
+  font-size: 0.875rem;
+  padding: 8px 12px;
+  border-bottom: 1px solid #64748b;
+  color: #0f172a;
+}
+
+.ppt-requirements-item {
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid #cbd5e1;
+  color: var(--text-secondary, #334155);
+}
+
+.ppt-requirements-item:last-child {
+  border-bottom: none;
+}

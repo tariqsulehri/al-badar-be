@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import PptxGenJS from "pptxgenjs";
-import { AddIcon, DownloadIcon } from "../../components/icons";
+import { AddIcon, DownloadIcon, PlanIcon } from "../../components/icons";
 import PageHeader from "../../components/common/PageHeader";
 import SearchBar from "../../components/searchBar/search.bar.component";
 import { getAllSlides, getSlidesBySearch } from "../../services/apis/slideService";
@@ -13,6 +13,7 @@ import { getAllSuppliersForSelection } from "../../services/apis/partyService";
 import SlidesDataTable from "../../features/slides/components/table/slides.mui.datatable";
 import { showToastNotification } from "../../helpers/notificationsHepler";
 import { addSlide, clearSlides } from "../../features/slides/slice/slidesForPptxSlice";
+import { setDraftSlides } from "../customerPlan/slice/customerPlanSlice";
 import pptxHelper from "./components/helpers/pptxHelper";
 import { category } from "../../constant/data";
 
@@ -190,6 +191,16 @@ const SlideList = () => {
     }
   };
 
+  const handleMoveToCustomerPlan = () => {
+    if (!selectedCount) {
+      showToastNotification("warning", "Select slides first to move to Customer Plan");
+      return;
+    }
+    dispatch(setDraftSlides(selectedSlides));
+    showToastNotification("success", `Moved ${selectedCount} slide(s) to Customer Plan`);
+    navigate("/customer-plans/create");
+  };
+
   return (
     <section className="page-section surface-grid">
 
@@ -232,6 +243,15 @@ const SlideList = () => {
               disabled={!selectedCount}
             >
               View queue
+            </button>
+            <button
+              type="button"
+              className="ui-btn ui-btn--primary"
+              onClick={handleMoveToCustomerPlan}
+              disabled={!selectedCount}
+              title="Move selected slides to customer media plan"
+            >
+              <PlanIcon fontSize="small" /> Move to Plan <span className="ui-btn__count">{selectedCount}</span>
             </button>
             {selectedCount > 0 && (
               <button type="button" className="ui-btn ui-btn--ghost" onClick={handleReset}>

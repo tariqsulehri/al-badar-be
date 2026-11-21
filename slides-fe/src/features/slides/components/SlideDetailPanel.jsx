@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import DetailPanel, { DetailItem, DetailSection } from "../../../components/common/DetailPanel";
-import { ModeEditOutlineIcon } from "../../../components/icons";
+import { ModeEditOutlineIcon, PlanIcon } from "../../../components/icons";
 import { formatAmount } from "../../../utils/format";
 import StatusBadge from "../../../components/common/StatusBadge";
+import { addSlidesToDraft } from "../../customerPlan/slice/customerPlanSlice";
+import { showToastNotification } from "../../../helpers/notificationsHepler";
 
 const SlideImage = ({ src, code }) => {
   const [failed, setFailed] = useState(false);
@@ -30,10 +34,19 @@ const SlideImage = ({ src, code }) => {
 SlideImage.propTypes = { src: PropTypes.string, code: PropTypes.string };
 
 const SlideDetailPanel = ({ slide, isSelected, onToggleSelect, onEdit, onClose, onPrev, onNext, position }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   if (!slide) return null;
 
   const size =
     slide.height_feets || slide.width_feets ? `${slide.height_feets || "?"} × ${slide.width_feets || "?"} ft` : null;
+
+  const handleAddToPlan = () => {
+    dispatch(addSlidesToDraft([slide]));
+    showToastNotification("success", `Added ${slide.code} to Customer Plan`);
+    navigate("/customer-plans/create");
+  };
 
   return (
     <DetailPanel
@@ -56,6 +69,14 @@ const SlideDetailPanel = ({ slide, isSelected, onToggleSelect, onEdit, onClose, 
             }`}
           >
             {isSelected ? "✓ In PPTX queue" : "Add to PPTX"}
+          </button>
+          <button
+            type="button"
+            onClick={handleAddToPlan}
+            className="flex h-9 items-center gap-1 rounded-lg border border-border-soft px-3 text-[13px] font-medium text-text-primary hover:border-brand transition-colors"
+            title="Add this slide to Customer Media Plan"
+          >
+            <PlanIcon fontSize="small" /> + Plan
           </button>
           <button
             type="button"

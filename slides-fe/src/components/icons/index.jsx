@@ -108,3 +108,7 @@ export const CloseIcon = createIcon(
 
 export const DownloadIcon = createIcon("M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z", "DownloadIcon");
 export const AddIcon = createIcon("M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z", "AddIcon");
+export const PlanIcon = createIcon(
+  "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z",
+  "PlanIcon"
+);

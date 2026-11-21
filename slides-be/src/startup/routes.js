@@ -5,6 +5,7 @@ const slides = require("../routes/slides");
 const party = require("../routes/party");
 const quotes = require("../routes/quotes");
 const invoices = require("../routes/invoice");
+const customerPlan = require("../routes/customerPlan");
 const lookups = require("../routes/lookups");
 
 module.exports = function mountRoutes(app) {
@@ -17,5 +18,6 @@ module.exports = function mountRoutes(app) {
   app.use("/api/party", auth, party);
   app.use("/api/quote", auth, quotes);
   app.use("/api/invoice", auth, invoices);
+  app.use("/api/customer-plan", auth, customerPlan);
   Object.entries(lookups).forEach(([path, router]) => app.use(path, auth, router));
 };

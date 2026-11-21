@@ -3,4 +3,5 @@ const crudRouter = require("./crudRouter");
 
 module.exports = crudRouter(partyController, {
   "/suppliers/list_for_select": partyController.listSuppliersForSelect,
+  "/clients/list_for_select": partyController.listClientsForSelect,
 });

@@ -1,15 +1,18 @@
 import React, { useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { clearSlides, removeSlide } from "../../slice/slidesForPptxSlice";
+import { setDraftSlides } from "../../../customerPlan/slice/customerPlanSlice";
 import CustomButton from "../../../../components/form-controls/buttons/customButton";
 import { showToastNotification } from "../../../../helpers/notificationsHepler";
-import { DeleteIcon } from "../../../../components/icons";
+import { DeleteIcon, PlanIcon } from "../../../../components/icons";
 import TablePagination from "../../../../components/common/table/TablePagination";
 import "./slide.table.css";
 
 const SelectedDataTableComponent = ({ data = [], columns = [] }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -91,6 +94,18 @@ const SelectedDataTableComponent = ({ data = [], columns = [] }) => {
             className="h-9 px-3 rounded-lg border border-border-soft bg-bg-surface-strong text-xs font-semibold text-text-primary hover:bg-brand-muted hover:text-brand-strong disabled:opacity-40 transition-colors cursor-pointer"
           >
             Export CSV
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              dispatch(setDraftSlides(data));
+              showToastNotification("success", `Moved ${data.length} slide(s) to Customer Plan`);
+              navigate("/customer-plans/create");
+            }}
+            disabled={!data.length}
+            className="h-9 px-3 rounded-lg bg-brand text-on-brand text-xs font-bold hover:bg-brand-strong disabled:opacity-40 transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <PlanIcon fontSize="small" /> Move to Plan
           </button>
           <CustomButton
             id="clearAll"

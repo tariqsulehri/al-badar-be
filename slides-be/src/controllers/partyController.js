@@ -39,6 +39,37 @@ exports.listSuppliersForSelect = async (req, res) => {
   return ok(res, suppliers.map(({ name }) => ({ label: name, value: name })));
 };
 
+// Clients/Customers for selection in Customer Plan & other flows.
+exports.listClientsForSelect = async (req, res) => {
+  const clients = await Party.find({
+    name: { $nin: [null, ""] },
+    partyType: { $ne: SUPPLIER_PARTY_TYPE },
+  })
+    .sort({ name: 1 })
+    .select({ _id: 1, name: 1, partyType: 1, city: 1, phoneNo: 1, cellNo: 1, email: 1, contactPerson: 1, address: 1 })
+    .lean();
+
+  // If no non-supplier party exists, fallback to all named parties so user always has options
+  const partyList = clients.length > 0 ? clients : await Party.find({ name: { $nin: [null, ""] } }).sort({ name: 1 }).lean();
+
+  return ok(
+    res,
+    partyList.map((p) => ({
+      label: p.partyType ? `${p.name} (${p.partyType})` : p.name,
+      value: p._id,
+      _id: p._id,
+      name: p.name,
+      partyType: p.partyType || "Customer",
+      city: p.city || "",
+      phoneNo: p.phoneNo || p.cellNo || "",
+      cellNo: p.cellNo || "",
+      email: p.email || "",
+      contactPerson: p.contactPerson || "",
+      address: p.address || "",
+    }))
+  );
+};
+
 exports.update = async (req, res) => {
   const data = readPayload(req.body);
   await ensureUnique(data, req.params.id);

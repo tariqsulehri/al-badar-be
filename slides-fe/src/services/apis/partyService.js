@@ -27,6 +27,15 @@ export const getAllSuppliersForSelection = async () => {
   }
 };
 
+export const getAllClientsForSelection = async () => {
+  try {
+    return unwrap(await httpClient.get("/party/clients/list_for_select")) || [];
+  } catch (error) {
+    notifyError(error);
+    return [];
+  }
+};
+
 /** Resolves to the party, or null if it couldn't be loaded. */
 export const findPartyById = async (id) => {
   try {
