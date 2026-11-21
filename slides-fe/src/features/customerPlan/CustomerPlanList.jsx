@@ -184,7 +184,7 @@ const CustomerPlanList = () => {
                         </span>
                       </td>
                       <td className="py-3 px-3 text-right font-mono text-text-secondary whitespace-nowrap">
-                        {(plan.totalSqft || 0).toLocaleString()}
+                        {Math.round(plan.totalSqft || 0).toLocaleString("en-US")}
                       </td>
                       <td className="py-3 px-3 text-right font-mono font-bold text-text-primary whitespace-nowrap">
                         {formatAmount(plan.grandTotal)}

@@ -8,6 +8,7 @@ import { setDraftSlides } from "../customerPlan/slice/customerPlanSlice";
 import pptxHelper from "./components/helpers/pptxHelper";
 import PptxGenJS from "pptxgenjs";
 import { showToastNotification } from "../../helpers/notificationsHepler";
+import { formatAmount } from "../../utils/format";
 
 const columns = [
   { 
@@ -30,9 +31,27 @@ const columns = [
   { name: "no_of_steamers", label: "Steamers" },
   { name: "working_hrs_day", label: "Work-Hrs" },
   { name: "lights", label: "Lights" },
-  { name: "supQuotedPrice", label: "SQ-Price" },
-  { name: "supDiscountedPrice", label: "SD-Price" },
-  { name: "finalPrice", label: "CF-Price" },
+  {
+    name: "supQuotedPrice",
+    label: "SQ-Price",
+    options: {
+      customBodyRender: (val) => formatAmount(val) || "-",
+    },
+  },
+  {
+    name: "supDiscountedPrice",
+    label: "SD-Price",
+    options: {
+      customBodyRender: (val) => formatAmount(val) || "-",
+    },
+  },
+  {
+    name: "finalPrice",
+    label: "CF-Price",
+    options: {
+      customBodyRender: (val) => formatAmount(val) || "-",
+    },
+  },
   { name: "status", label: "Status" },
 ];
 

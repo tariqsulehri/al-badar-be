@@ -475,7 +475,7 @@ const CustomerPlanEditor = () => {
 
                     {/* 6. Sqft (Auto calculated: W * H) */}
                     <td className="text-right font-mono font-medium text-text-primary px-2">
-                      {sqft.toLocaleString()}
+                      {Math.round(sqft).toLocaleString("en-US")}
                     </td>
 
                     {/* 7. Quoting Monthly Rent */}
@@ -524,7 +524,7 @@ const CustomerPlanEditor = () => {
 
                     {/* 11. Grand Total (Automatically updated: 30 Days Rent + Skin Cost) */}
                     <td className="text-right font-mono font-bold text-brand px-2 bg-brand-muted/10">
-                      {grandTotal.toLocaleString()}
+                      {Math.round(grandTotal).toLocaleString("en-US")}
                     </td>
 
                     {/* 12. Status */}
@@ -567,22 +567,22 @@ const CustomerPlanEditor = () => {
                 <td className="text-right font-mono"></td>
                 <td className="text-right font-mono"></td>
                 <td className="text-right font-mono font-bold px-2">
-                  {totals.totalSqft.toLocaleString()}
+                  {Math.round(totals.totalSqft).toLocaleString("en-US")}
                 </td>
                 <td className="text-right font-mono font-bold px-2">
-                  {totals.totalQuoting.toLocaleString()}
+                  {Math.round(totals.totalQuoting).toLocaleString("en-US")}
                 </td>
                 <td className="text-right font-mono font-bold px-2">
-                  {totals.totalDiscounted.toLocaleString()}
+                  {Math.round(totals.totalDiscounted).toLocaleString("en-US")}
                 </td>
                 <td className="text-right font-mono font-bold px-2">
-                  {totals.totalThirtyDays.toLocaleString()}
+                  {Math.round(totals.totalThirtyDays).toLocaleString("en-US")}
                 </td>
                 <td className="text-right font-mono font-bold px-2">
-                  {totals.totalSkin.toLocaleString()}
+                  {Math.round(totals.totalSkin).toLocaleString("en-US")}
                 </td>
                 <td className="text-right font-mono font-extrabold text-brand px-2 bg-brand-muted/20 text-sm">
-                  {totals.grandTotal.toLocaleString()}
+                  {Math.round(totals.grandTotal).toLocaleString("en-US")}
                 </td>
                 <td colSpan={2}></td>
               </tr>
@@ -616,7 +616,7 @@ const CustomerPlanEditor = () => {
           <div className="flex items-center justify-between text-xs text-text-secondary py-1 border-b border-border-soft">
             <span>Total Square Feet:</span>
             <span className="font-bold font-mono text-text-primary">
-              {totals.totalSqft.toLocaleString()} sqft
+              {Math.round(totals.totalSqft).toLocaleString("en-US")} sqft
             </span>
           </div>
           <div className="flex items-center justify-between text-xs text-text-secondary py-1 border-b border-border-soft">

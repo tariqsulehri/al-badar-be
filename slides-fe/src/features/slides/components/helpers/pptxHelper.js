@@ -100,6 +100,10 @@ const pptxHelper = {
     const COLOR_PRIMARY_NAVY = "0A3370"; // Dark blue text for headers, labels, values
     const COLOR_FOOTER_NAVY = "084B8A"; // Vibrant dark blue for the bottom status bar
 
+    // Clean sans-serif corporate font (avoids pixelated/jagged rendering on screens)
+    const FONT_PRIMARY = "Calibri";
+    const FONT_FOOTER = "Calibri";
+
     for (const slideData of records) {
       const slide = pptx.addSlide();
 
@@ -123,7 +127,7 @@ const pptxHelper = {
         h: 0.65,
         align: "center",
         valign: "middle",
-        fontFace: "Georgia",
+        fontFace: FONT_PRIMARY,
         fontSize: 22,
         bold: true,
         color: COLOR_PRIMARY_NAVY,
@@ -138,7 +142,7 @@ const pptxHelper = {
         h: 0.70,
         align: "center",
         valign: "middle",
-        fontFace: "Georgia",
+        fontFace: FONT_PRIMARY,
         fontSize: 13.5,
         bold: true,
         color: COLOR_PRIMARY_NAVY,
@@ -154,7 +158,7 @@ const pptxHelper = {
           h: 0.40,
           align: "center",
           valign: "middle",
-          fontFace: "Georgia",
+          fontFace: FONT_PRIMARY,
           fontSize: 9,
           color: COLOR_PRIMARY_NAVY,
         });
@@ -162,27 +166,32 @@ const pptxHelper = {
 
       // 4. Details Table (4 rows: Code, Size, Per Month Rent, Status)
       const codeVal = slideData.code || "";
-      const widthVal = slideData.width_feets ?? 0;
-      const heightVal = slideData.height_feets ?? 0;
+      const widthVal = slideData.width_feets != null ? Math.round(Number(slideData.width_feets) || 0) : null;
+      const heightVal = slideData.height_feets != null ? Math.round(Number(slideData.height_feets) || 0) : null;
       const sizeVal =
         widthVal && heightVal
           ? `${widthVal} x ${heightVal}`
           : slideData.dimension || "-";
 
-      const priceVal =
+      const rawPrice =
+        slideData.quotingMonthlyRent ??
         slideData.quoting_monthly_rent ??
+        slideData.discountedMonthlyRent ??
+        slideData.discounted_monthly_rent ??
+        slideData.thirtyDaysRent ??
         slideData.finalPrice ??
-        slideData.quotedPrice ??
-        slideData.discounted_monthly_rent;
+        slideData.quotedPrice;
+
+      // Always display rent amounts without decimals (rounded to nearest whole rupee)
       const rentFormatted =
-        priceVal !== undefined && priceVal !== null && priceVal !== "" && !isNaN(Number(priceVal))
-          ? Number(priceVal).toLocaleString("en-US")
-          : (priceVal || "N/A");
+        rawPrice !== undefined && rawPrice !== null && rawPrice !== "" && !isNaN(Number(rawPrice))
+          ? Math.round(Number(rawPrice)).toLocaleString("en-US")
+          : (rawPrice || "N/A");
 
       const statusVal = slideData.status || "Available";
 
       const labelCellOpts = {
-        fontFace: "Georgia",
+        fontFace: FONT_PRIMARY,
         fontSize: 10.5,
         bold: true,
         color: COLOR_PRIMARY_NAVY,
@@ -198,7 +207,7 @@ const pptxHelper = {
       };
 
       const valueCellOpts = {
-        fontFace: "Georgia",
+        fontFace: FONT_PRIMARY,
         fontSize: 10.5,
         bold: true,
         color: COLOR_PRIMARY_NAVY,
@@ -289,52 +298,65 @@ const pptxHelper = {
           h: 0.50,
           align: "center",
           valign: "middle",
-          fontFace: "Georgia",
+          fontFace: FONT_PRIMARY,
           fontSize: 14,
           color: "94A3B8",
         });
       }
 
       // 7. Full-width static status bar at the bottom
+      // Background bar spanning entire slide width safely positioned
       slide.addShape(pptx.shapes.RECTANGLE, {
         x: 0.0,
-        y: 5.22,
+        y: 5.15,
         w: 10.0,
-        h: 0.405,
+        h: 0.475,
         fill: { color: COLOR_FOOTER_NAVY },
-        line: { color: COLOR_FOOTER_NAVY },
+        line: { color: COLOR_FOOTER_NAVY, width: 0 },
       });
 
-      // Static status bar text: Muhammad Faisal | Cell # 0333-4732769 | E-mail: faisal.albadarmediasoluions@gmail.com
-      const footerCellOpts = (align) => ({
-        fontFace: "Arial",
-        fontSize: 10,
+      // Explicit native text blocks with crisp, proper font (Calibri bold)
+      // Left: Muhammad Faisal
+      slide.addText("Muhammad Faisal", {
+        x: 0.35,
+        y: 5.18,
+        w: 2.8,
+        h: 0.40,
+        fontFace: FONT_FOOTER,
+        fontSize: 11,
         bold: true,
         color: "FFFFFF",
-        align,
+        align: "left",
         valign: "middle",
       });
 
-      slide.addTable(
-        [
-          [
-            { text: "Muhammad Faisal", options: footerCellOpts("left") },
-            { text: "Cell # 0333-4732769", options: footerCellOpts("center") },
-            {
-              text: "E-mail: faisal.albadarmediasoluions@gmail.com",
-              options: footerCellOpts("right"),
-            },
-          ],
-        ],
-        {
-          x: 0.25,
-          y: 5.22,
-          w: 9.50,
-          h: 0.405,
-          colW: [2.8, 3.4, 3.3],
-          border: { type: "none" },
-        }
-      );
+      // Center: Cell #  0333-4732769
+      slide.addText("Cell #  0333-4732769", {
+        x: 3.2,
+        y: 5.18,
+        w: 3.6,
+        h: 0.40,
+        fontFace: FONT_FOOTER,
+        fontSize: 11,
+        bold: true,
+        color: "FFFFFF",
+        align: "center",
+        valign: "middle",
+      });
+
+      // Right: E-mail: faisal.albadarmediasoluions@gmail.com
+      slide.addText("E-mail: faisal.albadarmediasoluions@gmail.com", {
+        x: 6.8,
+        y: 5.18,
+        w: 2.9,
+        h: 0.40,
+        fontFace: FONT_FOOTER,
+        fontSize: 10,
+        bold: true,
+        color: "FFFFFF",
+        align: "right",
+        valign: "middle",
+      });
     }
   },
 };

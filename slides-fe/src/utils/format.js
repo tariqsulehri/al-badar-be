@@ -4,5 +4,5 @@ export const formatAmount = (value) => {
   const n = Number(String(value).replace(/,/g, ""));
   if (!Number.isFinite(n)) return String(value);
   if (n === 0) return null;
-  return n.toLocaleString();
+  return Math.round(n).toLocaleString("en-US");
 };

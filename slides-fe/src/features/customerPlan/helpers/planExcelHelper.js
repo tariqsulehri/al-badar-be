@@ -105,12 +105,12 @@ export const exportPlanToExcel = async (plan) => {
 
     const width = Number(item.width_feets) || 0;
     const height = Number(item.height_feets) || 0;
-    const sqft = width * height;
-    const quotingRent = Number(item.quotingMonthlyRent) || 0;
-    const discountedRent = Number(item.discountedMonthlyRent) || 0;
-    const thirtyDaysRent = Number(item.thirtyDaysRent) || 0;
-    const skinCost = Number(item.skinCost) || 0;
-    const grandTotal = thirtyDaysRent + skinCost;
+    const sqft = Math.round(width * height);
+    const quotingRent = Math.round(Number(item.quotingMonthlyRent) || 0);
+    const discountedRent = Math.round(Number(item.discountedMonthlyRent) || 0);
+    const thirtyDaysRent = Math.round(Number(item.thirtyDaysRent) || 0);
+    const skinCost = Math.round(Number(item.skinCost) || 0);
+    const grandTotal = Math.round(thirtyDaysRent + skinCost);
 
     row.getCell(1).value = index + 1;
     row.getCell(1).alignment = { vertical: "middle", horizontal: "center" };

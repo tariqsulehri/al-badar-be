@@ -35,7 +35,7 @@ const greeting = () => {
   return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 };
 
-const fmt = (n) => (typeof n === "number" ? n.toLocaleString() : "—");
+const fmt = (n) => (typeof n === "number" ? Math.round(n).toLocaleString("en-US") : "—");
 
 const card = "rounded-2xl border border-border-soft bg-bg-surface shadow-soft";
 
