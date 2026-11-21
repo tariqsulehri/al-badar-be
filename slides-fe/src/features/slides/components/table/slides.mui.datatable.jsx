@@ -157,7 +157,34 @@ const SlidesDataTable = ({
                 )}
               </div>
             </th>
-            <th className="hidden w-[110px] lg:table-cell">Size (ft)</th>
+            <th
+              className="hidden w-[95px] lg:table-cell text-center cursor-pointer select-none hover:text-text-primary transition-colors"
+              onClick={() => handleHeaderSort("height_feets")}
+              title="Sort by height in feet"
+            >
+              <div className="flex items-center justify-center gap-1">
+                <span>Height (ft)</span>
+                {sortBy === "height_feets" && (
+                  <span className="text-brand text-xs font-bold">
+                    {sortOrder === "asc" ? "▲" : "▼"}
+                  </span>
+                )}
+              </div>
+            </th>
+            <th
+              className="hidden w-[95px] lg:table-cell text-center cursor-pointer select-none hover:text-text-primary transition-colors"
+              onClick={() => handleHeaderSort("width_feets")}
+              title="Sort by width in feet"
+            >
+              <div className="flex items-center justify-center gap-1">
+                <span>Width (ft)</span>
+                {sortBy === "width_feets" && (
+                  <span className="text-brand text-xs font-bold">
+                    {sortOrder === "asc" ? "▲" : "▼"}
+                  </span>
+                )}
+              </div>
+            </th>
             <th
               className="w-[130px] text-right cursor-pointer select-none hover:text-text-primary transition-colors"
               onClick={() => handleHeaderSort("finalPrice")}
@@ -192,7 +219,7 @@ const SlidesDataTable = ({
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan={8} className="py-12 text-center text-text-muted">
+              <td colSpan={9} className="py-12 text-center text-text-muted">
                 <div className="flex items-center justify-center gap-2">
                   <svg className="h-5 w-5 animate-spin text-brand" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -204,7 +231,7 @@ const SlidesDataTable = ({
             </tr>
           ) : data.length === 0 ? (
             <tr>
-              <td colSpan={8} className="py-12 text-center text-text-muted">
+              <td colSpan={9} className="py-12 text-center text-text-muted">
                 No slides found
               </td>
             </tr>
@@ -253,9 +280,14 @@ const SlidesDataTable = ({
                     )}
                     {row.dimension && <div className="cell-meta mt-1 truncate">{row.dimension}</div>}
                   </td>
-                  <td className="hidden lg:table-cell">
-                    <div className="num whitespace-nowrap">
-                      {row.height_feets || row.width_feets ? `${row.height_feets || "?"} × ${row.width_feets || "?"}` : "-"}
+                  <td className="hidden lg:table-cell text-center">
+                    <div className="num whitespace-nowrap font-medium">
+                      {row.height_feets ?? "-"}
+                    </div>
+                  </td>
+                  <td className="hidden lg:table-cell text-center">
+                    <div className="num whitespace-nowrap font-medium">
+                      {row.width_feets ?? "-"}
                     </div>
                     {row.lights && (
                       <div className="cell-meta truncate" title={`Lights: ${row.lights}`}>

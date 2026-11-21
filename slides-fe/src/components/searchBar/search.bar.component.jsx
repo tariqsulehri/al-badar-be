@@ -24,6 +24,8 @@ const SORT_FIELDS = [
   { value: "code", label: "Code" },
   { value: "finalPrice", label: "Final Price" },
   { value: "quotedPrice", label: "Customer Quoted" },
+  { value: "height_feets", label: "Height" },
+  { value: "width_feets", label: "Width" },
   { value: "city", label: "City" },
   { value: "area", label: "Area" },
   { value: "subArea", label: "Sub Area" },

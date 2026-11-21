@@ -157,7 +157,7 @@ const SlidePickerModal = ({ isOpen, onClose, onAddSlides, existingSlideIds = [] 
                         {[slide.city, slide.subArea || slide.area].filter(Boolean).join(" · ")}
                       </p>
                       <div className="flex items-center justify-between text-[11px] text-text-muted mt-1">
-                        <span>{slide.width_feets} × {slide.height_feets} ft</span>
+                        <span>H: {slide.height_feets ?? "?"} × W: {slide.width_feets ?? "?"} ft</span>
                         <span className="font-semibold text-text-primary">
                           {formatAmount(slide.quotedPrice)}
                         </span>

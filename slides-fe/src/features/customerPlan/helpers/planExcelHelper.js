@@ -1,4 +1,4 @@
-import ExcelJS from "exceljs";
+import ExcelJS from "exceljs/dist/exceljs.min.js";
 
 /**
  * Generates and downloads an Excel file exactly matching the layout and styling
