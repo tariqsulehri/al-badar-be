@@ -147,7 +147,15 @@ const pptxHelper = {
         fontFace: FONT_NAME,
         fontSize: 22,
         bold: true,
-        color: "FFFFFF", // Crisp white text on sky-blue dotted box
+        color: "FFFFFF", // Crisp white text on sky-blue box
+        shadow: {
+          type: "outer",
+          color: "1A4870",
+          blur: 2,
+          offset: 1,
+          angle: 90,
+          opacity: 0.35,
+        },
       });
 
       // 3. Location / Area Header (no extra left margin)
