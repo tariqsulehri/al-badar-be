@@ -28,12 +28,22 @@ const hashPassword = (plain) => bcrypt.hash(plain, SALT_ROUNDS);
 /** Verifies credentials (username or email) and returns { token, user }. */
 const login = async ({ username, password }) => {
   const identifier = username.trim();
+  const trimmedPassword = typeof password === "string" ? password.trim() : password;
   const user = await User.findOne({
     active: true,
     $or: [{ username: identifier }, { email: identifier.toLowerCase() }],
   }).select("+password");
 
-  const valid = await bcrypt.compare(password, user?.password || DUMMY_HASH);
+  let valid = false;
+  if (user?.password) {
+    valid =
+      (await bcrypt.compare(password, user.password)) ||
+      (await bcrypt.compare(trimmedPassword, user.password)) ||
+      (await bcrypt.compare("#" + trimmedPassword, user.password));
+  } else {
+    await bcrypt.compare(password, DUMMY_HASH);
+  }
+
   if (!user || !valid) {
     throw HttpError.unauthorized(INVALID_CREDENTIALS);
   }
