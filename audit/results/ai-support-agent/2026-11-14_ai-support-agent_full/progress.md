@@ -1,0 +1,27 @@
+# Audit Progress: ai-support-agent
+
+- **Kit Version:** 0.2.0
+- **Config:** `/Users/tk-lpt-1088/development/node/VoiceAgent/audit/config.md`
+- **Run Folder:** `/Users/tk-lpt-1088/development/node/VoiceAgent/audit/results/ai-support-agent/2026-11-14_ai-support-agent_full`
+- **Date:** 2026-11-14
+- **Mode:** `AUDIT-ONLY`
+- **Depth:** `standard`
+- **Current Stage:** Stage 7 Complete -> **🛑 CHECKPOINT B**
+- **Stages Completed:**
+  - [x] Stage 0: Discovery (`system-map.md`)
+  - [x] Stage 1: Tool Scan (`evidence/tool-output/*`)
+  - [x] Stage 2: Threat Model (`threat-model.md`)
+  - [x] Stage 3: Dimension Review (16 dimensions evaluated against Next.js, React, MongoDB Native, LLM Voice, Docker stacks)
+  - [x] Stage 4: Write Findings (`findings.json`)
+  - [x] Stage 5: Verification (Line-by-line code citation check)
+  - [x] Stage 6: Sequencing (Wave 0 to Wave 3)
+  - [x] Stage 7: Report Generation (`report.html`, `findings.csv`)
+- **Generated Outputs:**
+  - `report.html` (76 KB self-contained HTML report)
+  - `findings.json` (Validated schema, 14 findings)
+  - `findings.csv` (Spreadsheet export for Jira / Linear)
+  - `report.config.json` (Audit metadata)
+  - `run.json` (Execution log & tool results)
+  - `system-map.md` (Stage 0 architecture)
+  - `threat-model.md` (Stage 2 STRIDE & abuse cases)
+  - `evidence/tool-output/` (Tool outputs for tsc, eslint, git churn, impeccable)

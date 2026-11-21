@@ -1,0 +1,45 @@
+{
+  "kit_version": "0.2.0",
+  "model": "Antigravity Pro (Claude 3.7 / Gemini)",
+  "project": "ai-support-agent",
+  "start_time": "2026-11-14T12:12:00+05:00",
+  "end_time": "2026-11-14T13:08:00+05:00",
+  "mode": "AUDIT-ONLY",
+  "depth": "standard",
+  "commit": "a7eaae6",
+  "branch": "master",
+  "tools": [
+    {
+      "name": "tsc",
+      "version": "5.7.3",
+      "command": "npx tsc --noEmit",
+      "exit_code": 0,
+      "result": "Passed with 0 errors"
+    },
+    {
+      "name": "eslint",
+      "version": "9.x",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "result": "Passed with 0 errors and 0 warnings"
+    },
+    {
+      "name": "impeccable",
+      "version": "4.8.1",
+      "command": "npm run impeccable -- doctor",
+      "exit_code": 0,
+      "result": "Passed with 0 drift findings"
+    },
+    {
+      "name": "git-churn",
+      "version": "2.x",
+      "command": "git log --name-only",
+      "exit_code": 0,
+      "result": "Top churn hotspot: use-voice-agent.ts (35)"
+    }
+  ],
+  "limits_hit": [
+    "npm audit network blocked by standard sandbox; dependency inspection performed statically."
+  ]
+}
+

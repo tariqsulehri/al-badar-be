@@ -1,0 +1,21 @@
+{
+  "title": "ai-support-agent Architecture, Security and Quality Audit",
+  "project": "ai-support-agent",
+  "date": "2026-11-14",
+  "mode": "AUDIT-ONLY",
+  "scope": "Full repository (Next.js 15, React 19, MongoDB Native, OpenAI/ElevenLabs, Docker)",
+  "auditor": "Principal Code Auditor (Antigravity)",
+  "confidentiality": "Confidential",
+  "kit_version": "0.2.0",
+  "team_size": 1,
+  "release_cadence": "Continuous deployment to Docker & Vercel",
+  "repos": [
+    {
+      "name": "ai-support-agent",
+      "branch": "master",
+      "commit": "a7eaae6"
+    }
+  ],
+  "previous_run": null
+}
+

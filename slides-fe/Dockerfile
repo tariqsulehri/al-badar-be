@@ -12,8 +12,8 @@ RUN npm ci
 
 COPY . .
 
-# API URL is baked into the bundle at build time (Vite). Pass with --build-arg.
-ARG VITE_API_BASE_URL
+# API URL is baked into the bundle at build time (Vite). Pass with --build-arg or defaults to /api.
+ARG VITE_API_BASE_URL=/api
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
 RUN npm run build

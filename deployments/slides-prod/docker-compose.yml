@@ -1,0 +1,52 @@
+# ==============================================================================
+# Slides Application - Production Compose Stack
+# Architecture:
+#   - MongoDB: Physically installed on the host VM (port 27017)
+#   - Backend: Express API (port 3500)
+#   - Frontend: React + Tailwind CSS (port 3000)
+# ==============================================================================
+
+services:
+  backend:
+    image: tariqsulehri/slides-be:${BACKEND_TAG:-latest}
+    container_name: slides-prod-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend.env
+    ports:
+      # Bound to 127.0.0.1:3500 so all external traffic goes through host Nginx
+      - "${PROD_BACKEND_BIND:-127.0.0.1:3500}:3500"
+    extra_hosts:
+      # Connects to MongoDB physically installed on host VM
+      # URI in backend.env: mongodb://host.docker.internal:27017/abdata
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # Persistent host storage for uploaded slide images
+      - ./uploads:/app/public/uploads/slides/images:rw
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3500/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "15m"
+        max-file: "5"
+
+  frontend:
+    image: tariqsulehri/slides-fe:${FRONTEND_TAG:-latest}
+    container_name: slides-prod-frontend
+    restart: unless-stopped
+    ports:
+      # Bound to 127.0.0.1:3000 for host Nginx reverse proxy
+      - "${PROD_FRONTEND_BIND:-127.0.0.1:3000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

@@ -1,0 +1,7 @@
+
+> voiceagent@2.0.0 impeccable
+> .agent/skills/impeccable/scripts/impeccable doctor
+
+Impeccable doctor: /Users/tk-lpt-1088/development/node/VoiceAgent
+
+No drift found. Every artifact matches what this version reads.

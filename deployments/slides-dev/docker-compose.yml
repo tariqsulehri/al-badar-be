@@ -1,0 +1,51 @@
+# ==============================================================================
+# Slides Application - Development Compose Stack
+# Architecture:
+#   - MongoDB: Physically installed on the host VM (port 27017)
+#   - Backend: Express API (port 3501 on host -> 3500 container)
+#   - Frontend: React + Tailwind CSS (port 3001 on host -> 80 container)
+# ==============================================================================
+
+services:
+  backend:
+    image: tariqsulehri/slides-be:${BACKEND_TAG:-dev}
+    container_name: slides-dev-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend.env
+    ports:
+      # Port 3501 on host mapped to 3500 in container (avoids collision with prod 3500)
+      - "${DEV_BACKEND_BIND:-127.0.0.1:3501}:3500"
+    extra_hosts:
+      # Connects to MongoDB physically installed on host VM
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # Persistent host storage for uploaded slide images in dev
+      - ./uploads:/app/public/uploads/slides/images:rw
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3500/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    image: tariqsulehri/slides-fe:${FRONTEND_TAG:-dev}
+    container_name: slides-dev-frontend
+    restart: unless-stopped
+    ports:
+      # Port 3001 on host mapped to 80 in container (avoids collision with prod 3000)
+      - "${DEV_FRONTEND_BIND:-127.0.0.1:3001}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -1,44 +1,44 @@
 services:
- mongodb:
-   # TODO: pin to the exact major version your data volume was created with (e.g. mongo:8.0)
-   # and enable auth (MONGO_INITDB_ROOT_USERNAME/PASSWORD only apply to a fresh volume).
-   image: mongo:latest
-   container_name: mongodb
-   restart: unless-stopped
-   # Only reachable from this host (and from the other containers). Never publish MongoDB publicly.
-   ports:
-    - "127.0.0.1:27017:27017"
-   volumes:
-    - mongodb_data:/data/db
+  # Optional: only runs when explicitly requested via: docker compose --profile local-db up
+  # On the VM where MongoDB is installed locally on the host, this container is NOT started.
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: unless-stopped
+    profiles: ["local-db"]
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    image: tariqsulehri/slides-be:latest
+    container_name: al-badar-be
+    restart: unless-stopped
+    ports:
+      - "3500:3500"
+    extra_hosts:
+      # Connects to MongoDB installed locally on the host VM
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./slides-be/public/uploads/slides:/app/public/uploads/slides/images:rw
+    environment:
+      PORT: 3500
+      DB: ${DB:-mongodb://host.docker.internal:27017/abdata}
+      BASE_URL: ${BASE_URL:-http://localhost:3500}
+      NODE_SECRET_KEY: ${NODE_SECRET_KEY:-your_secret_key_at_least_32_characters}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://167.86.122.141}
+      NODE_ENV: production
 
 
- backend:
-   image: tariqsulehri/slides-be:latest
-   container_name: al-badar-be
-   restart: unless-stopped
-   depends_on:
-    - mongodb
-   ports:
-    - "3500:3500"
-   volumes:
-    - ./slides-be/public/uploads/slides:/app/public/uploads/slides/images:rw
-   environment:
-     PORT: 3500
-     DB: ${DB}
-     BASE_URL: ${BASE_URL:-http://localhost:3500}
-     NODE_SECRET_KEY: ${NODE_SECRET_KEY:?Set NODE_SECRET_KEY in .env}
-     CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-     NODE_ENV: production
-
-
- frontend:
-   image: tariqsulehri/slides-fe:latest
-   container_name: al-badar-fe
-   restart: unless-stopped
-   depends_on:
-    - backend
-   ports:
-    - "3000:80"
+  frontend:
+    image: tariqsulehri/slides-fe:latest
+    container_name: al-badar-fe
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
 
 volumes:
- mongodb_data:
+  mongodb_data:
