@@ -1,4 +1,9 @@
 import { AL_BADAR_LOGO_BASE64 } from "./alBadarLogo";
+import {
+  DOTTED_BAR_BASE64,
+  DOTTED_CITY_BASE64,
+  DOTTED_SIDEBAR_BG_BASE64,
+} from "./pptxPatterns";
 
 /**
  * Normalizes image URL to avoid cross-origin / localhost discrepancies
@@ -96,13 +101,17 @@ const pptxHelper = {
       : `data:${AL_BADAR_LOGO_BASE64}`;
 
     // Colors matching reference template
-    const COLOR_HEADER_FILL = "ADCDE6"; // Light sky-blue for City and Table labels
+    const COLOR_HEADER_FILL = "9BC5E8"; // Light sky-blue for Table labels
     const COLOR_PRIMARY_NAVY = "0A3370"; // Dark blue text for headers, labels, values
-    const COLOR_FOOTER_NAVY = "084B8A"; // Vibrant dark blue for the bottom status bar
 
-    // Clean sans-serif corporate font (avoids pixelated/jagged rendering on screens)
-    const FONT_PRIMARY = "Calibri";
-    const FONT_FOOTER = "Calibri";
+    // Font: Calibri (Body) across the whole slide
+    const FONT_NAME = "Calibri";
+
+    // Slide Layout Constants
+    const SLIDE_HEIGHT = 5.625;
+    const BOTTOM_BAR_HEIGHT = 0.25;
+    const BOTTOM_BAR_Y = SLIDE_HEIGHT - BOTTOM_BAR_HEIGHT; // 5.375
+    const SIDEBAR_WIDTH = 2.50; // zero left margin
 
     for (const slideData of records) {
       const slide = pptx.addSlide();
@@ -110,61 +119,69 @@ const pptxHelper = {
       // Clean white background
       slide.background = { color: "FFFFFF" };
 
-      // 1. City Header Box (e.g. Multan, Islamabad) with light blue fill
-      const cityText = (slideData.city || "").trim();
-      slide.addShape(pptx.shapes.RECTANGLE, {
-        x: 0.15,
-        y: 0.18,
-        w: 2.45,
-        h: 0.65,
-        fill: { color: COLOR_HEADER_FILL },
-        line: { color: "9BBFD8", width: 1 },
-      });
-      slide.addText(cityText, {
-        x: 0.15,
-        y: 0.18,
-        w: 2.45,
-        h: 0.65,
-        align: "center",
-        valign: "middle",
-        fontFace: FONT_PRIMARY,
-        fontSize: 22,
-        bold: true,
-        color: COLOR_PRIMARY_NAVY,
+      // 1. Left Sidebar Dotted Background (beneath City header down to bottom bar)
+      slide.addImage({
+        data: DOTTED_SIDEBAR_BG_BASE64,
+        x: 0.0,
+        y: 0.70,
+        w: SIDEBAR_WIDTH,
+        h: BOTTOM_BAR_Y - 0.70,
       });
 
-      // 2. Location / Area Header
-      const locationText = getLocationHeader(slideData);
-      slide.addText(locationText, {
-        x: 0.15,
-        y: 0.88,
-        w: 2.45,
+      // 2. City Header Box (x: 0, w: 2.50, h: 0.70) with dotted sky-blue fill style
+      const cityText = (slideData.city || "").trim();
+      slide.addImage({
+        data: DOTTED_CITY_BASE64,
+        x: 0.0,
+        y: 0.0,
+        w: SIDEBAR_WIDTH,
+        h: 0.70,
+      });
+      slide.addText(cityText, {
+        x: 0.0,
+        y: 0.0,
+        w: SIDEBAR_WIDTH,
         h: 0.70,
         align: "center",
         valign: "middle",
-        fontFace: FONT_PRIMARY,
-        fontSize: 13.5,
+        fontFace: FONT_NAME,
+        fontSize: 22,
+        bold: true,
+        color: "FFFFFF", // Crisp white text on sky-blue dotted box
+      });
+
+      // 3. Location / Area Header (no extra left margin)
+      const locationText = getLocationHeader(slideData);
+      slide.addText(locationText, {
+        x: 0.08,
+        y: 0.78,
+        w: SIDEBAR_WIDTH - 0.16,
+        h: 0.55,
+        align: "center",
+        valign: "middle",
+        fontFace: FONT_NAME,
+        fontSize: 13,
         bold: true,
         color: COLOR_PRIMARY_NAVY,
       });
 
-      // 3. Traffic Facing Subtitle
+      // 4. Traffic Facing Subtitle
       const facingText = getFacingText(slideData);
       if (facingText) {
         slide.addText(facingText, {
-          x: 0.15,
-          y: 1.58,
-          w: 2.45,
-          h: 0.40,
+          x: 0.08,
+          y: 1.33,
+          w: SIDEBAR_WIDTH - 0.16,
+          h: 0.38,
           align: "center",
           valign: "middle",
-          fontFace: FONT_PRIMARY,
-          fontSize: 9,
+          fontFace: FONT_NAME,
+          fontSize: 8.5,
           color: COLOR_PRIMARY_NAVY,
         });
       }
 
-      // 4. Details Table (4 rows: Code, Size, Per Month Rent, Status)
+      // 5. Details Table (4 rows: Code, Size, Rent / M, Status)
       const codeVal = slideData.code || "";
       const widthVal = slideData.width_feets != null ? Math.round(Number(slideData.width_feets) || 0) : null;
       const heightVal = slideData.height_feets != null ? Math.round(Number(slideData.height_feets) || 0) : null;
@@ -182,7 +199,7 @@ const pptxHelper = {
         slideData.finalPrice ??
         slideData.quotedPrice;
 
-      // Always display rent amounts without decimals (rounded to nearest whole rupee)
+      // Always round to whole rupees (no decimals)
       const rentFormatted =
         rawPrice !== undefined && rawPrice !== null && rawPrice !== "" && !isNaN(Number(rawPrice))
           ? Math.round(Number(rawPrice)).toLocaleString("en-US")
@@ -191,34 +208,34 @@ const pptxHelper = {
       const statusVal = slideData.status || "Available";
 
       const labelCellOpts = {
-        fontFace: FONT_PRIMARY,
-        fontSize: 10.5,
+        fontFace: FONT_NAME,
+        fontSize: 10,
         bold: true,
         color: COLOR_PRIMARY_NAVY,
         align: "center",
         valign: "middle",
         fill: { color: COLOR_HEADER_FILL },
         border: [
-          { pt: 1, color: "FFFFFF" },
-          { pt: 1, color: "FFFFFF" },
-          { pt: 1, color: "FFFFFF" },
-          { pt: 1, color: "FFFFFF" },
+          { pt: 1.5, color: "FFFFFF" },
+          { pt: 1.5, color: "FFFFFF" },
+          { pt: 1.5, color: "FFFFFF" },
+          { pt: 1.5, color: "FFFFFF" },
         ],
       };
 
       const valueCellOpts = {
-        fontFace: FONT_PRIMARY,
-        fontSize: 10.5,
+        fontFace: FONT_NAME,
+        fontSize: 10,
         bold: true,
         color: COLOR_PRIMARY_NAVY,
         align: "center",
         valign: "middle",
         fill: { color: "FFFFFF" },
         border: [
-          { pt: 1, color: COLOR_HEADER_FILL },
-          { pt: 1, color: COLOR_HEADER_FILL },
-          { pt: 1, color: COLOR_HEADER_FILL },
-          { pt: 1, color: COLOR_HEADER_FILL },
+          { pt: 1.5, color: "FFFFFF" },
+          { pt: 1.5, color: "FFFFFF" },
+          { pt: 1.5, color: "FFFFFF" },
+          { pt: 1.5, color: "FFFFFF" },
         ],
       };
 
@@ -232,7 +249,7 @@ const pptxHelper = {
           { text: sizeVal, options: valueCellOpts },
         ],
         [
-          { text: "Per Month\nRent", options: labelCellOpts },
+          { text: "Rent / M", options: labelCellOpts },
           { text: rentFormatted, options: valueCellOpts },
         ],
         [
@@ -242,23 +259,23 @@ const pptxHelper = {
       ];
 
       slide.addTable(tableRows, {
-        x: 0.15,
-        y: 2.02,
-        w: 2.45,
-        colW: [1.22, 1.23],
-        rowH: [0.46, 0.46, 0.54, 0.46],
+        x: 0.05,
+        y: 1.78,
+        w: SIDEBAR_WIDTH - 0.10,
+        colW: [1.16, 1.24],
+        rowH: [0.46, 0.46, 0.46, 0.46],
       });
 
-      // 5. Static Al-Badar Media Solutions Logo (same on every slide)
+      // 6. Static Al-Badar Media Solutions Logo (centered below table)
       slide.addImage({
         data: logoDataUri,
-        x: 0.58,
-        y: 4.08,
+        x: 0.46,
+        y: 3.90,
         w: 1.58,
         h: 0.95,
       });
 
-      // 6. Right Panel: Dynamic billboard photo from MongoDB
+      // 7. Right Panel: Dynamic billboard photo from MongoDB (Maximum Space)
       const rawImageUrl = slideData.image;
       const normalizedImageUrl = normalizeImageUrl(rawImageUrl);
 
@@ -269,10 +286,10 @@ const pptxHelper = {
           if (imgBase64) {
             slide.addImage({
               data: imgBase64,
-              x: 2.72,
-              y: 0.18,
-              w: 7.10,
-              h: 4.88,
+              x: SIDEBAR_WIDTH,
+              y: 0.0,
+              w: 10.0 - SIDEBAR_WIDTH, // 7.50 in (max space!)
+              h: BOTTOM_BAR_Y,         // 5.375 in (all the way to bottom bar!)
             });
             imageEmbedded = true;
           }
@@ -284,82 +301,37 @@ const pptxHelper = {
       // Fallback placeholder if image is missing or cannot be loaded
       if (!imageEmbedded) {
         slide.addShape(pptx.shapes.RECTANGLE, {
-          x: 2.72,
-          y: 0.18,
-          w: 7.10,
-          h: 4.88,
+          x: SIDEBAR_WIDTH,
+          y: 0.0,
+          w: 10.0 - SIDEBAR_WIDTH,
+          h: BOTTOM_BAR_Y,
           fill: { color: "F8FAFC" },
           line: { color: "CBD5E1", width: 1, dashType: "dash" },
         });
         slide.addText("Image Not Available", {
-          x: 2.72,
+          x: SIDEBAR_WIDTH,
           y: 2.37,
-          w: 7.10,
+          w: 10.0 - SIDEBAR_WIDTH,
           h: 0.50,
           align: "center",
           valign: "middle",
-          fontFace: FONT_PRIMARY,
+          fontFace: FONT_NAME,
           fontSize: 14,
           color: "94A3B8",
         });
       }
 
-      // 7. Full-width static status bar at the bottom
-      // Background bar spanning entire slide width safely positioned
-      slide.addShape(pptx.shapes.RECTANGLE, {
+      // 8. Full-width static blue bar at the bottom with dotted fill style
+      // Spanning the bottom line in the format, no text as requested
+      slide.addImage({
+        data: DOTTED_BAR_BASE64,
         x: 0.0,
-        y: 5.15,
+        y: BOTTOM_BAR_Y,
         w: 10.0,
-        h: 0.475,
-        fill: { color: COLOR_FOOTER_NAVY },
-        line: { color: COLOR_FOOTER_NAVY, width: 0 },
-      });
-
-      // Explicit native text blocks with crisp, proper font (Calibri bold)
-      // Left: Muhammad Faisal
-      slide.addText("Muhammad Faisal", {
-        x: 0.35,
-        y: 5.18,
-        w: 2.8,
-        h: 0.40,
-        fontFace: FONT_FOOTER,
-        fontSize: 11,
-        bold: true,
-        color: "FFFFFF",
-        align: "left",
-        valign: "middle",
-      });
-
-      // Center: Cell #  0333-4732769
-      slide.addText("Cell #  0333-4732769", {
-        x: 3.2,
-        y: 5.18,
-        w: 3.6,
-        h: 0.40,
-        fontFace: FONT_FOOTER,
-        fontSize: 11,
-        bold: true,
-        color: "FFFFFF",
-        align: "center",
-        valign: "middle",
-      });
-
-      // Right: E-mail: faisal.albadarmediasoluions@gmail.com
-      slide.addText("E-mail: faisal.albadarmediasoluions@gmail.com", {
-        x: 6.8,
-        y: 5.18,
-        w: 2.9,
-        h: 0.40,
-        fontFace: FONT_FOOTER,
-        fontSize: 10,
-        bold: true,
-        color: "FFFFFF",
-        align: "right",
-        valign: "middle",
+        h: BOTTOM_BAR_HEIGHT,
       });
     }
   },
 };
 
 export default pptxHelper;
-
